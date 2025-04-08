@@ -1,0 +1,261 @@
+<div class="app-container d-flex vh-100">
+  <aside
+    class="left-sidebar bg-light d-flex flex-column align-items-center p-3">
+    <div class="user-profile mb-3">
+      <div
+        class="avatar rounded-circle"
+        style="width: 50px; height: 50px; background-color: #ddd"
+      >
+        <img
+          src="path/to/your/avatar.png"
+          alt="Your Avatar"
+          class="img-fluid rounded-circle"
+        />
+      </div>
+    </div>
+    <nav class="navigation">
+      <ul class="nav flex-column">
+        <li class="nav-item active">
+          <a class="nav-link"><i class="bi bi-chat-fill fs-5"></i></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link"><i class="bi bi-bell-fill fs-5"></i></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link"><i class="bi bi-gear-fill fs-5"></i></a>
+        </li>
+      </ul>
+    </nav>
+  </aside>
+  
+  <section class="chats-section flex-grow-0 d-flex flex-column border-end">
+    <div
+      class="chats-header p-3 d-flex justify-content-between align-items-center">
+      <h2>Chats</h2>
+      <button class="btn btn-sm btn-outline-secondary rounded-circle">
+        <i class="bi bi-plus"></i>
+      </button>
+    </div>
+    <div class="search-bar p-3">
+      <div class="input-group">
+        <input type="text" class="form-control" placeholder="Search" />
+        <span class="input-group-text"><i class="bi bi-search"></i></span>
+      </div>
+    </div>
+    <div class="chats-tabs p-2">
+      <div class="btn-group w-100" role="group">
+        <button type="button" class="btn btn-light active">Chat</button>
+        <button type="button" class="btn btn-light">Call</button>
+      </div>
+    </div>
+    <ul class="chats-list list-unstyled overflow-auto">
+      <li
+        *ngFor="let friend of friends"
+        (click)="selectFriend(friend)"
+        [class.active]="selectedFriendId === friend.friendId"
+        class="p-3 border-bottom d-flex align-items-center"
+      >
+        <div
+          class="avatar rounded-circle me-2"
+          style="
+            width: 40px;
+            height: 40px;
+            background-color: #ddd;
+            overflow: hidden;
+          "
+        >
+          <img
+            [src]="friend.avatar || 'path/to/default/avatar.png'"
+            alt="{{ friend.friendName }}"
+            class="img-fluid rounded-circle"
+          />
+        </div>
+        <div class="info flex-grow-1">
+          <span class="d-block fw-bold">{{ friend.friendName }}</span>
+          <p class="text-muted small text-truncate">
+            {{ friend.lastMessage || "No messages yet" }}
+          </p>
+        </div>
+        <span class="text-muted small ms-auto">{{
+          friend.lastMessageTime || ""
+        }}</span>
+        <span
+          class="badge bg-primary rounded-pill ms-2"
+          *ngIf="friend.unreadCount > 0"
+          >{{ friend.unreadCount }}</span
+        >
+      </li>
+    </ul>
+  </section>
+
+  <section class="chat-area flex-grow-2 d-flex flex-column">
+    <div
+      class="chat-area-header p-3 border-bottom d-flex justify-content-between align-items-center"
+    >
+      <div class="recipient-info d-flex align-items-center">
+        <!-- <div class="avatar rounded-circle me-2" style="width: 40px; height: 40px; background-color: #ddd; overflow: hidden;">
+          <img *ngIf="selectedFriend" [src]="selectedFriend.avatar || 'path/to/default/avatar.png'" alt="{{ selectedFriend.friendName }}" class="img-fluid rounded-circle">
+        </div> -->
+        <span class="fw-bold" *ngIf="selectedFriend">{{ selectedFriend.friendName }}</span>
+      </div>
+      <div class="chat-actions">
+        <!-- <button class="btn btn-sm btn-outline-secondary rounded-circle me-2">
+          <i class="bi bi-camera-video-fill"></i>
+        </button> -->
+        <button
+          *ngIf="selectedFriendId"
+          class="btn btn-sm btn-outline-secondary rounded-circle me-2"
+          (click)="startCall(selectedFriendId)"
+        >
+          <i class="bi bi-telephone-fill"></i>
+        </button>
+        <button class="btn btn-sm btn-outline-secondary rounded-circle">
+          <i class="bi bi-three-dots-vertical"></i>
+        </button>
+      </div>
+    </div>
+    <div #chatContainer class="overflow-y-auto h-full messages flex-grow-1 overflow-auto p-3">
+      <div
+        *ngFor="let message of messages"  class="mb-2"
+        [ngClass]="{
+          'text-end': message.senderId === userId,
+          'text-start': message.senderId !== userId
+        }">
+        <div
+          class="message-content bg-light p-2 rounded-pill d-inline-block"
+          [ngClass]="{
+            'bg-primary text-white': message.senderId === userId,
+            'bg-light text-dark': message.senderId !== userId
+          }">
+          <p class="mb-0">{{ message.content }}</p>
+          <!-- <span class="message-time small text-muted">{{
+            message.createdDate | date : "shortTime"
+          }}</span> -->
+        </div>
+        <span
+          class="sender-info small text-muted"
+          [ngClass]="{
+            'text-end': message.senderId === userId,
+            'text-start': message.senderId !== userId
+          }">
+          {{message.senderId === userId? 'Bạn': friendMap[message.senderId] || message.senderId
+          }}
+        </span>
+      </div>
+      </div>
+    <div class="message-input-area p-3 border-top">
+      <div class="d-flex align-items-center">
+        <div class="input-actions me-2">
+          <button class="btn btn-sm btn-light rounded-circle me-1">
+            <i class="bi bi-plus"></i>
+          </button>
+          <button class="btn btn-sm btn-light rounded-circle">
+            <i class="bi bi-emoji-smile-fill"></i>
+          </button>
+        </div>
+        <div class="input-field flex-grow-1 me-2">
+          <input
+            type="text"
+            class="form-control rounded-pill"
+            [(ngModel)]="messageInput"
+            placeholder="Write your message..."
+          />
+        </div>
+        <div class="send-button">
+          <button class="btn btn-primary rounded-pill" (click)="sendMessage()">
+            <i class="bi bi-send-fill"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <aside class="right-sidebar bg-light border-start p-3" style="width: 280px">
+    <div class="profile-info mb-3 d-flex flex-column align-items-center">
+      <div
+        class="avatar rounded-circle"
+        style="width: 60px; height: 60px; background-color: #ddd"
+      >
+        <img
+          src="path/to/your/company_logo.png"
+          alt="Company Logo"
+          class="img-fluid rounded-circle"
+        />
+      </div>
+      <h3 class="h6 mt-2 mb-0">PrimeTek</h3>
+      <!-- <p class="text-muted small">@primetek</p> -->
+    </div>
+    <div class="settings mb-3">
+      <div
+        class="setting-item d-flex justify-content-between align-items-center mb-2"
+      >
+        <span>Notification</span>
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" role="switch" />
+        </div>
+      </div>
+      <div
+        class="setting-item d-flex justify-content-between align-items-center mb-2"
+      >
+        <span>Sound</span>
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" role="switch" />
+        </div>
+      </div>
+      <div
+        class="setting-item d-flex justify-content-between align-items-center mb-2"
+      >
+        <span>Save to downloads</span>
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" role="switch" />
+        </div>
+      </div>
+    </div>
+    <div class="members">
+      <div
+        class="members-header d-flex justify-content-between align-items-center mb-2"
+      >
+        <span class="fw-bold small">Members</span>
+        <button class="btn btn-sm btn-outline-secondary">See All</button>
+      </div>
+      <!-- <ul class="members-list list-unstyled">
+        <li *ngFor="let member of chatMembers" class="d-flex align-items-center mb-2">
+          <div class="avatar rounded-circle me-2" style="width: 30px; height: 30px; background-color: #ddd; overflow: hidden;">
+            <img [src]="member.avatar || 'path/to/default/avatar.png'" alt="{{ member.name }}" class="img-fluid rounded-circle">
+          </div>
+          <span class="small flex-grow-1">{{ member.name }}</span>
+          <i class="bi bi-arrow-right small text-muted"></i>
+        </li>
+      </ul> -->
+    </div>
+    <div class="media-links mt-3 d-flex justify-content-around">
+      <button class="btn btn-sm btn-light">Media</button>
+      <button class="btn btn-sm btn-light">Link</button>
+      <button class="btn btn-sm btn-light">Docs</button>
+    </div>
+  </aside>
+
+  <audio #remoteAudio autoplay></audio>
+
+  <div
+    *ngIf="isCalling"
+    class="call-overlay bg-secondary text-white p-3 rounded">
+    Đang gọi với {{ friendMap[callInProgressWith!] || callInProgressWith }}...
+    <button (click)="stopCall()" class="btn btn-danger btn-sm ms-2">
+      Kết thúc
+    </button>
+  </div>
+
+  <div
+    *ngIf="isIncomingCall"
+    class="incoming-call-overlay bg-success text-white p-3 rounded"
+  >
+    Cuộc gọi đến từ {{ incomingCallerName }}
+    <button (click)="acceptCall()" class="btn btn-primary btn-sm me-2">
+      Chấp nhận
+    </button>
+    <button (click)="rejectCall()" class="btn btn-danger btn-sm">
+      Từ chối
+    </button>
+  </div>
+</div>
