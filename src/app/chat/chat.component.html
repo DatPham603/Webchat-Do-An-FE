@@ -32,15 +32,25 @@
     <div
       class="chats-header p-3 d-flex justify-content-between align-items-center">
       <h2>Chats</h2>
-      <button class="btn btn-sm btn-outline-secondary rounded-circle">
+      <button class="btn btn-sm btn-outline-secondary rounded-circle" (click)="openCreateGroupModal()">
         <i class="bi bi-plus"></i>
-      </button>
+    </button>
     </div>
     <div class="search-bar p-3">
       <div class="input-group">
-        <input type="text" class="form-control" placeholder="Search" />
-        <span class="input-group-text"><i class="bi bi-search"></i></span>
+        <input type="text" class="form-control" placeholder="Tìm kiếm người dùng theo email"
+                   [(ngModel)]="searchEmail" />
+            <button class="btn btn-outline-secondary" type="button" (click)="findUserByEmail()">
+                <i class="bi bi-search"></i>
+            </button>
       </div>
+      <div *ngIf="foundUser" class="mt-2">
+        <span>{{ foundUser.email }}</span>
+        <button class="btn btn-sm btn-primary ms-2" (click)="addUserToGroup()">Thêm vào nhóm</button>
+    </div>
+    <div *ngIf="findUserError" class="mt-2 text-danger">
+        {{ findUserError }}
+    </div>  
     </div>
     <div class="chats-tabs p-2">
       <div class="btn-group w-100" role="group">
@@ -48,13 +58,12 @@
         <button type="button" class="btn btn-light">Call</button>
       </div>
     </div>
-    <ul class="chats-list list-unstyled overflow-auto">
+    <!-- <ul class="chats-list list-unstyled overflow-auto">
       <li
         *ngFor="let friend of friends"
         (click)="selectFriend(friend)"
         [class.active]="selectedFriendId === friend.friendId"
-        class="p-3 border-bottom d-flex align-items-center"
-      >
+        class="p-3 border-bottom d-flex align-items-center">
         <div
           class="avatar rounded-circle me-2"
           style="
@@ -62,8 +71,7 @@
             height: 40px;
             background-color: #ddd;
             overflow: hidden;
-          "
-        >
+          ">
           <img
             [src]="friend.avatar || 'path/to/default/avatar.png'"
             alt="{{ friend.friendName }}"
@@ -77,15 +85,52 @@
           </p>
         </div>
         <span class="text-muted small ms-auto">{{
-          friend.lastMessageTime || ""
-        }}</span>
+          friend.lastMessageTime || ""}}</span>
         <span
           class="badge bg-primary rounded-pill ms-2"
           *ngIf="friend.unreadCount > 0"
           >{{ friend.unreadCount }}</span
         >
       </li>
+    </ul> -->
+    <ul class="chats-list list-unstyled overflow-auto">
+      <li
+        *ngFor="let item of chatList"
+        (click)="selectChat(item)"
+        [class.active]="(selectedFriendId === item.id && item.type === 'user') || (selectedGroupId === item.id && item.type === 'group')"
+        class="p-3 border-bottom d-flex align-items-center"
+      >
+        <div
+          class="avatar rounded-circle me-2"
+          style="
+            width: 40px;
+            height: 40px;
+            background-color: #ddd;
+            overflow: hidden;
+          "
+        >
+          <img
+            [src]="item.avatar || 'path/to/default/avatar.png'"
+            alt="{{ item.name }}"
+            class="img-fluid rounded-circle"
+          />
+        </div>
+        <div class="info flex-grow-1">
+          <span class="d-block fw-bold">{{ item.name }}</span>
+          <p class="text-muted small text-truncate">
+            <span *ngIf="item.type === 'user'">{{ item.lastMessage || "No messages yet" }}</span>
+            <span *ngIf="item.type === 'group'">{{ item.lastMessage || "No messages yet" }}</span>
+          </p>
+          <span *ngIf="item.type === 'group'" class="text-muted small">({{ item.memberCount }} members)</span>
+        </div>
+        <span class="text-muted small ms-auto">{{ item.lastActive | date:'shortTime' }}</span>
+        <!-- <span
+          class="badge bg-primary rounded-pill ms-2"
+          *ngIf="item.unreadCount > 0"
+          >{{ item.unreadCount }}</span> -->
+      </li>
     </ul>
+    
   </section>
 
   <section class="chat-area flex-grow-2 d-flex flex-column">
@@ -114,7 +159,7 @@
         </button>
       </div>
     </div>
-    <div #chatContainer class="overflow-y-auto h-full messages flex-grow-1 overflow-auto p-3">
+    <div class="messages flex-grow-1 overflow-auto p-3">
       <div
         *ngFor="let message of messages"  class="mb-2"
         [ngClass]="{
@@ -169,6 +214,15 @@
       </div>
     </div>
   </section>
+
+  <div *ngIf="isCreateGroupModalOpen" class="modal">
+    <div class="modal-content">
+        <h3>Tạo nhóm mới</h3>
+        <input type="text" [(ngModel)]="newGroupName" placeholder="Tên nhóm">
+        <button (click)="createGroup()">Tạo</button>
+        <button (click)="closeCreateGroupModal()">Hủy</button>
+    </div>
+</div>
 
   <aside class="right-sidebar bg-light border-start p-3" style="width: 280px">
     <div class="profile-info mb-3 d-flex flex-column align-items-center">
