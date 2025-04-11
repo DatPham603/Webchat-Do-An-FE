@@ -24,6 +24,8 @@ interface ChatMessage {
   content: string;
   createdDate?: Date;
   type: 'CHAT' | 'OFFER' | 'ANSWER' | 'ICECANDIDATE' | 'REJECT' | 'GROUP_CHAT';
+  fileUrl?: string; // Thêm trường cho URL file/image
+  contentType?: 'TEXT' | 'IMAGE' | 'FILE';
 }
 
 interface ChatListItem {
@@ -51,7 +53,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   selectedFriendId: string | null = null;
   userId: string | null = null;
   email: string | null = null;
-  // friends: any[] = [];
+  friends: any[] = [];
   chatList: ChatListItem[] = [];
   selectedFriend: any | null = null;
   messages: ChatMessage[] = [];
@@ -75,6 +77,8 @@ export class ChatComponent implements OnInit, OnDestroy {
   foundUser: any | null = null;
   findUserError: string | null = null;
   groupMembers: any[] = [];
+  selectedFile: File | null = null;
+  selectedImageUrl: string | null = null;
 
   @ViewChild('localVideo') localVideo: ElementRef<HTMLVideoElement> | undefined;
   @ViewChild('remoteVideo') remoteVideo:
@@ -84,6 +88,8 @@ export class ChatComponent implements OnInit, OnDestroy {
     | ElementRef<HTMLAudioElement>
     | undefined;
   @ViewChild('chatContainer') private chatContainer!: ElementRef;
+  @ViewChild('fileInput') fileInput!: ElementRef;
+  @ViewChild('imageInput') imageInput!: ElementRef;
 
   private readonly iceServers = {
     iceServers: [
@@ -111,6 +117,67 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.stompClient.disconnect();
     }
     this.stopMediaStreams();
+  }
+
+
+  onFileSelected(event: any) {
+    this.selectedFile = event.target.files[0];
+    this.uploadFile();
+  }
+
+  onImageSelected(event: any) {
+    this.selectedFile = event.target.files[0];
+    this.uploadImage();
+  }
+
+  async uploadFile() {
+    if (this.selectedFile) {
+      const formData = new FormData();
+      formData.append('file', this.selectedFile);
+      const token = this.getToken();
+      const headers = new HttpHeaders({
+        'Authorization': `Bearer ${token}`
+      });
+
+      try {
+        const response: any = await this.http.post('http://localhost:8990/api/v1/file/upload-file', formData, { headers }).toPromise();
+        this.selectedFile = null;
+        this.sendMessage(response.url, 'FILE'); // Gọi sendMessage với URL và contentType
+      } catch (error) {
+        console.error('Lỗi tải lên file:', error);
+        alert('Không thể tải lên file.');
+      }
+    }
+  }
+
+  async uploadImage() {
+    if (this.selectedFile) {
+      const formData = new FormData();
+      formData.append('image', this.selectedFile);
+      const token = this.getToken();
+      const headers = new HttpHeaders({
+        'Authorization': `Bearer ${token}`
+      });
+
+      try {
+        const response: any = await this.http.post('http://localhost:8990/api/v1/file/upload-image', formData, { headers }).toPromise();
+        this.selectedFile = null;
+        this.sendMessage(response.url, 'IMAGE'); // Gọi sendMessage với URL và contentType
+      } catch (error) {
+        console.error('Lỗi tải lên ảnh:', error);
+        alert('Không thể tải lên ảnh.');
+      }
+    }
+  }
+  getFilenameFromUrl(url: string): string | null {
+    if (!url) {
+      return null;
+    }
+    const parts = url.split('/');
+    if (parts.length > 0) {
+      return parts[parts.length - 1];
+    }
+    return null;
   }
 
   getToken(): string | null {
@@ -431,32 +498,32 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
   }
 
-  // async getFriendList() {
-  //   const email = await this.getUserMailFromToken();
-  //   if (!email) {
-  //     console.error('Không tìm thấy email người dùng.');
-  //     return;
-  //   }
-  //   const token = this.getToken();
-  //   const headers = new HttpHeaders({
-  //     Authorization: `Bearer ${token}`,
-  //   });
+  async getFriendList() {
+    const email = await this.getUserMailFromToken();
+    if (!email) {
+      console.error('Không tìm thấy email người dùng.');
+      return;
+    }
+    const token = this.getToken();
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+    });
 
-  //   try {
-  //     const response = await this.http
-  //       .get<any>(
-  //         `http://localhost:8010/api/v1/friends/get-list-friend-by-email/${email}`,
-  //         { headers }
-  //       )
-  //       .toPromise();
-  //     this.friends = response.data;
-  //     this.friends.forEach(
-  //       (friend) => (this.friendMap[friend.friendId] = friend.friendName)
-  //     );
-  //   } catch (error) {
-  //     console.error('Lỗi khi lấy danh sách bạn bè:', error);
-  //   }
-  // }
+    try {
+      const response = await this.http
+        .get<any>(
+          `http://localhost:8010/api/v1/friends/get-list-friend-by-email/${email}`,
+          { headers }
+        )
+        .toPromise();
+      this.friends = response.data;
+      this.friends.forEach(
+        (friend) => (this.friendMap[friend.friendId] = friend.friendName)
+      );
+    } catch (error) {
+      console.error('Lỗi khi lấy danh sách bạn bè:', error);
+    }
+  }
 
   async loadFriends() {
     const token = this.getToken();
@@ -481,13 +548,12 @@ export class ChatComponent implements OnInit, OnDestroy {
     // Logic để lấy userId từ local storage, state, v.v.
     return localStorage.getItem('userId'); // Ví dụ
   }
-  
 
-  sendMessage() {
-    if (this.messageInput && this.userId) {
+  sendMessage(fileUrl: string | null = null, contentType: 'TEXT' | 'IMAGE' | 'FILE' = 'TEXT') {
+    if ((this.messageInput || fileUrl) && this.userId) {
       let receiverId: string;
       let messageType: 'CHAT' | 'GROUP_CHAT';
-  
+
       if (this.selectedGroupId) {
         receiverId = this.selectedGroupId;
         messageType = 'GROUP_CHAT';
@@ -497,30 +563,36 @@ export class ChatComponent implements OnInit, OnDestroy {
       } else {
         return; // Không có người nhận được chọn
       }
-  
+
       const chatMessage: ChatMessage = {
         senderId: this.userId,
         senderName: this.email!,
         receiverId: receiverId,
-        content: this.messageInput,
-        type: messageType, // Gán type ở đây
+        content: contentType === 'TEXT' ? this.messageInput : '',
+        type: messageType,
+        fileUrl: fileUrl!,
+        contentType: contentType,
       };
-  
+
+      let destination = '';
       if (this.selectedGroupId) {
-        this.stompClient.send(
-          `/app/chat.send.room/${this.selectedGroupId}`,
-          {},
-          JSON.stringify(chatMessage)
-        );
+        destination = `/app/chat.send.room/${this.selectedGroupId}`;
       } else if (this.selectedFriendId) {
-        this.stompClient.send(
-          '/app/chat.send',
-          {},
-          JSON.stringify(chatMessage)
-        );
+        destination = '/app/chat.send';
       }
+
+      this.stompClient.send(
+        destination,
+        {},
+        JSON.stringify(chatMessage)
+      );
+
       this.messages.push(chatMessage);
       this.messageInput = '';
+      this.selectedFile = null; // Reset selected file
+      this.selectedImageUrl = null; // Reset selected image URL
+      this.fileInput.nativeElement.value = ''; // Reset file input
+      this.imageInput.nativeElement.value = ''; // Reset image input
     }
   }
 
@@ -551,20 +623,6 @@ export class ChatComponent implements OnInit, OnDestroy {
           }
           console.log('Tin nhắn cá nhân nhận được:', chatMessage);
         });
-        // Đăng ký topic nhóm nếu đã chọn nhóm trước đó (ví dụ: sau khi tải lại trang)
-        // console.log('selectedGroupId:', this.selectedGroupId);
-        // if (this.selectedGroupId) {
-          // this.subscribeToGroupTopic(this.selectedGroupId);
-          // this.stompClient.subscribe(`/topic/rooms/${this.selectedGroupId}`, (message: any) => {
-          //   const chatMessage: ChatMessage = JSON.parse(message.body);
-          //   if (chatMessage.senderId !== this.userId) {
-          //     this.messages.push(chatMessage);
-          //     this.scrollToBottom();
-          //   }
-          //   console.log('Tin nhắn nhóm nhận được:', chatMessage);
-          // });
-          // this.loadGroupChatHistory(this.selectedGroupId!);
-        // }
 
         this.stompClient.subscribe(
           `/user/queue/webrtc/offer`,
