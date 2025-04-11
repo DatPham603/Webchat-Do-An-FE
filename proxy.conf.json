@@ -1,0 +1,7 @@
+// {
+//     "/uploads": {
+//       "target": "http://localhost:8095",
+//       "secure": false,
+//       "changeOrigin": true
+//     }
+//   }

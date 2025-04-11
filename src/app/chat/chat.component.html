@@ -1,0 +1,231 @@
+<div class="app-container d-flex vh-100">
+  <aside class="left-sidebar bg-light d-flex flex-column align-items-center p-3" style="width: 80px;">
+    <div class="user-profile mb-3">
+      <div class="avatar rounded-circle" style="width: 40px; height: 40px; background-color: #ddd; overflow: hidden;">
+        <img src="path/to/your/avatar.png" alt="Your Avatar" class="img-fluid rounded-circle" style="border: none;">
+      </div>
+    </div>
+    <nav class="navigation">
+      <ul class="nav flex-column align-items-center">
+        <li class="nav-item active mb-2">
+          <a class="nav-link text-center"><i class="bi bi-chat-fill fs-5"></i></a>
+        </li>
+        <li class="nav-item mb-2">
+          <a class="nav-link text-center"><i class="bi bi-bell-fill fs-5"></i></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-center"><i class="bi bi-gear-fill fs-5"></i></a>
+        </li>
+      </ul>
+    </nav>
+  </aside>
+
+  <section class="chats-section flex-grow-0 d-flex flex-column border-end" style="width: 300px;">
+    <div class="chats-header p-3 d-flex justify-content-between align-items-center">
+      <h2 class="h5 mb-0">Chats</h2>
+      <button class="btn btn-sm btn-outline-secondary rounded-circle" (click)="openCreateGroupModal()">
+        <i class="bi bi-plus"></i>
+      </button>
+    </div>
+    <div class="search-bar p-3">
+      <div class="input-group">
+        <input type="text" class="form-control form-control-sm" placeholder="Tìm kiếm người dùng theo email"
+          [(ngModel)]="searchEmail" />
+        <button class="btn btn-outline-secondary btn-sm" type="button" (click)="findUserByEmail()">
+          <i class="bi bi-search"></i>
+        </button>
+      </div>
+      <div *ngIf="foundUser" class="mt-2 small">
+        <span>{{ foundUser.email }}</span>
+        <button class="btn btn-sm btn-primary ms-2" (click)="addUserToGroup()">Thêm</button>
+      </div>
+      <div *ngIf="findUserError" class="mt-2 text-danger small">
+        {{ findUserError }}
+      </div>
+    </div>
+    <div class="chats-tabs p-2">
+      <div class="btn-group w-100 btn-group-sm" role="group">
+        <button type="button" class="btn btn-light active">Chat</button>
+        <button type="button" class="btn btn-light">Call</button>
+      </div>
+    </div>
+    <ul class="chats-list list-unstyled overflow-auto">
+      <li *ngFor="let item of chatList" (click)="selectChat(item)"
+        [class.active]="(selectedFriendId === item.id && item.type === 'user') || (selectedGroupId === item.id && item.type === 'group')"
+        class="p-2 border-bottom d-flex align-items-center" style="cursor: pointer;">
+        <div class="avatar rounded-circle me-2" style="
+              width: 35px;
+              height: 35px;
+              background-color: #ddd;
+              overflow: hidden;
+            ">
+          <img [src]="item.avatar || 'path/to/default/avatar.png'" alt="{{ item.name }}"
+            class="img-fluid rounded-circle" style="border: none;">
+        </div>
+        <div class="info flex-grow-1">
+          <span class="d-block fw-bold small">{{ item.name }}</span>
+          <p class="text-muted small text-truncate mb-0">
+            <span *ngIf="item.type === 'user'">{{ item.lastMessage || "No messages yet" }}</span>
+            <span *ngIf="item.type === 'group'">{{ item.lastMessage || "No messages yet" }}</span>
+          </p>
+          <span *ngIf="item.type === 'group'" class="text-muted small">({{ item.memberCount }} members)</span>
+        </div>
+        <span class="text-muted small ms-auto">{{ item.lastActive | date:'shortTime' }}</span>
+      </li>
+    </ul>
+  </section>
+
+  <section class="chat-area flex-grow-2 d-flex flex-column">
+    <div class="chat-area-header p-3 border-bottom d-flex justify-content-between align-items-center">
+      <div class="recipient-info d-flex align-items-center">
+        <div class="avatar rounded-circle me-2"
+          style="width: 35px; height: 35px; background-color: #ddd; overflow: hidden;">
+          <img *ngIf="selectedFriend" [src]="selectedFriend.avatar || 'path/to/default/avatar.png'"
+            alt="{{ selectedFriend.friendName }}" class="img-fluid rounded-circle" style="border: none;">
+        </div>
+        <span class="fw-bold small" *ngIf="selectedFriend">{{ selectedFriend.friendName }}</span>
+      </div>
+      <div class="chat-actions">
+        <button *ngIf="selectedFriendId" class="btn btn-sm btn-outline-secondary rounded-circle me-2"
+          (click)="startCall(selectedFriendId)">
+          <i class="bi bi-telephone-fill"></i>
+        </button>
+        <button class="btn btn-sm btn-outline-secondary rounded-circle">
+          <i class="bi bi-three-dots-vertical"></i>
+        </button>
+      </div>
+    </div>
+    <div class="messages flex-grow-1 overflow-auto p-3">
+      <div *ngFor="let message of messages" class="mb-2 d-flex"
+        [ngClass]="{'justify-content-end': message.senderId === userId, 'justify-content-start': message.senderId !== userId}">
+        <div class="message-content p-2 rounded-pill d-inline-block" [ngClass]="{
+              'bg-primary text-white': message.senderId === userId,
+              'bg-light text-dark': message.senderId !== userId
+            }" style="max-width: 70%;">
+          <p class="mb-0 small" *ngIf="message.contentType === 'TEXT'">{{ message.content }}</p>
+          <img *ngIf="message.contentType === 'IMAGE' && message.fileUrl"
+          [src]="'http://localhost:8990/api/v1/file/get-image/' + getFilenameFromUrl(message.fileUrl)" alt="Image"
+          style="max-width: 100%; height: auto; border: none; background-color: transparent;">
+          <a *ngIf="message.contentType === 'FILE' && message.fileUrl"
+            [href]="'http://localhost:8990/api/v1/file/download/' + getFilenameFromUrl(message.fileUrl)"
+            target="_blank" class="text-decoration-none">
+            <button class="btn btn-sm rounded-pill"
+            [ngClass]="{'btn-light text-dark': message.senderId !== userId, 'btn-white text-white': message.senderId === userId}">
+            <i class="bi bi-file-earmark-fill me-1"></i> Tải File
+          </button>
+          </a>
+        </div>
+        <span class="sender-info small text-muted ms-1 me-1 align-self-end"
+          [ngClass]="{ 'text-end': message.senderId === userId, 'text-start': message.senderId !== userId}">
+          {{message.senderId === userId? 'Bạn': friendMap[message.senderId] || message.senderName}}
+        </span>
+      </div>
+    </div>
+    <div class="message-input-area p-3 border-top">
+      <div class="d-flex align-items-center">
+        <div class="input-actions me-2">
+          <button class="btn btn-sm btn-light rounded-circle me-1">
+            <i class="bi bi-plus"></i>
+          </button>
+          <input type="file" (change)="onFileSelected($event)" style="display: none;" #fileInput>
+          <button class="btn btn-sm btn-light rounded-circle me-1" (click)="fileInput.click()">
+            <i class="bi bi-paperclip"></i>
+          </button>
+          <input type="file" accept="image/*" (change)="onImageSelected($event)" style="display: none;"
+            #imageInput>
+          <button class="btn btn-sm btn-light rounded-circle me-1" (click)="imageInput.click()">
+            <i class="bi bi-image-fill"></i>
+          </button>
+          <button class="btn btn-sm btn-light rounded-circle">
+            <i class="bi bi-emoji-smile-fill"></i>
+          </button>
+        </div>
+        <div class="input-field flex-grow-1 me-2">
+          <input type="text" class="form-control form-control-sm rounded-pill" [(ngModel)]="messageInput"
+            placeholder="Viết tin nhắn..." />
+        </div>
+        <div class="send-button">
+          <button class="btn btn-primary btn-sm rounded-pill" (click)="sendMessage()">
+            <i class="bi bi-send-fill"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div *ngIf="isCreateGroupModalOpen" class="modal fade show" style="display: block; background-color: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Tạo nhóm mới</h5>
+          <button type="button" class="btn-close" (click)="closeCreateGroupModal()"></button>
+        </div>
+        <div class="modal-body">
+          <input type="text" [(ngModel)]="newGroupName" class="form-control form-control-sm mb-2"
+            placeholder="Tên nhóm">
+          <button class="btn btn-primary btn-sm" (click)="createGroup()">Tạo</button>
+          <button class="btn btn-secondary btn-sm ms-2" (click)="closeCreateGroupModal()">Hủy</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <aside class="right-sidebar bg-light border-start p-3" style="width: 250px">
+    <div class="profile-info mb-3 d-flex flex-column align-items-center">
+      <div class="avatar rounded-circle" style="width: 50px; height: 50px; background-color: #ddd; overflow: hidden;">
+        <img src="path/to/your/company_logo.png" alt="Company Logo" class="img-fluid rounded-circle" style="border: none;">
+      </div>
+      <h3 class="h6 mt-2 mb-0">PrimeTek</h3>
+      </div>
+    <div class="settings mb-3">
+      <div class="setting-item d-flex justify-content-between align-items-center mb-2 small">
+        <span>Thông báo</span>
+        <div class="form-check form-switch">
+          <input class="form-check-input form-check-input-sm" type="checkbox" role="switch" />
+        </div>
+      </div>
+      <div class="setting-item d-flex justify-content-between align-items-center mb-2 small">
+        <span>Âm thanh</span>
+        <div class="form-check form-switch">
+          <input class="form-check-input form-check-input-sm" type="checkbox" role="switch" />
+        </div>
+      </div>
+      <div class="setting-item d-flex justify-content-between align-items-center mb-2 small">
+        <span>Lưu vào tải xuống</span>
+        <div class="form-check form-switch">
+          <input class="form-check-input form-check-input-sm" type="checkbox" role="switch" />
+        </div>
+      </div>
+    </div>
+    <div class="members">
+      <div class="members-header d-flex justify-content-between align-items-center mb-2 small">
+        <span class="fw-bold">Thành viên</span>
+        <button class="btn btn-sm btn-outline-secondary">Xem tất cả</button>
+      </div>
+      </div>
+    <div class="media-links mt-3 d-flex justify-content-around small">
+      <button class="btn btn-sm btn-light">Media</button>
+      <button class="btn btn-sm btn-light">Link</button>
+      <button class="btn btn-sm btn-light">Docs</button>
+    </div>
+  </aside>
+
+  <audio #remoteAudio autoplay></audio>
+
+  <div *ngIf="isCalling" class="call-overlay bg-secondary text-white p-3 rounded small">
+    Đang gọi với {{ friendMap[callInProgressWith!] || callInProgressWith }}...
+    <button (click)="stopCall()" class="btn btn-danger btn-sm ms-2">
+      Kết thúc
+    </button>
+  </div>
+
+  <div *ngIf="isIncomingCall" class="incoming-call-overlay bg-success text-white p-3 rounded small">
+    Cuộc gọi đến từ {{ incomingCallerName }}
+    <button (click)="acceptCall()" class="btn btn-primary btn-sm me-2">
+      Chấp nhận
+    </button>
+    <button (click)="rejectCall()" class="btn btn-danger btn-sm">
+      Từ chối
+    </button>
+  </div>
+</div>

@@ -1,0 +1,102 @@
+.chat-container {
+  display: flex;
+  height: 100vh;
+}
+
+.friend-list {
+  width: 200px;
+  border: 1px solid #ccc;
+  padding: 10px;
+}
+
+.chat-area {
+  flex: 1;
+  border: 1px solid #ccc;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  border-bottom: 1px solid #ccc;
+  padding: 10px;
+}
+
+.message-input {
+  display: flex;
+  margin-top: 10px;
+}
+
+.message-input input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ccc;
+  margin-right: 5px;
+}
+
+.message-input button {
+  padding: 8px 15px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+}
+
+.sent {
+  text-align: right;
+  background-color: #e0f7fa;
+  padding: 8px;
+  margin: 5px;
+  border-radius: 5px;
+}
+
+.received {
+  text-align: left;
+  background-color: #f0f0f0;
+  padding: 8px;
+  margin: 5px;
+  border-radius: 5px;
+}
+
+.sender-info {
+  font-size: 0.8em;
+  color: #888;
+}
+
+.chat-area {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 2;
+  min-height: 500px; /* Hoặc một giá trị phù hợp */
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  .modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    width: 400px;
+    max-width: 90%;
+
+    h3 {
+      margin-top: 0;
+      margin-bottom: 15px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1; 
+    }}}
