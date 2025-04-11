@@ -66,7 +66,7 @@
           <span class="d-block fw-bold small">{{ item.name }}</span>
           <p class="text-muted small text-truncate mb-0">
             <span *ngIf="item.type === 'user'">{{ item.lastMessage || "No messages yet" }}</span>
-            <span *ngIf="item.type === 'group'">{`{ item.lastMessage || "No messages yet" }}</span>
+            <span *ngIf="item.type === 'group'">{{ item.lastMessage || "No messages yet" }}</span>
           </p>
           <span *ngIf="item.type === 'group'" class="text-muted small">({{ item.memberCount }} members)</span>
         </div>
