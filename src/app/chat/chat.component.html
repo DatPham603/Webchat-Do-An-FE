@@ -98,10 +98,12 @@
     <div class="messages flex-grow-1 overflow-auto p-3">
       <div *ngFor="let message of messages" class="mb-2 d-flex"
         [ngClass]="{'justify-content-end': message.senderId === userId, 'justify-content-start': message.senderId !== userId}">
-        <div class="message-content p-2 rounded-pill d-inline-block" [ngClass]="{
-              'bg-primary text-white': message.senderId === userId,
-              'bg-light text-dark': message.senderId !== userId
-            }" style="max-width: 70%;">
+        <div class="message-content p-2 rounded-pill d-inline-block"
+        [ngClass]="{
+          'bg-primary text-white': message.senderId === userId && message.contentType !== 'IMAGE',
+          'bg-light text-dark': message.senderId !== userId && message.contentType !== 'IMAGE'
+        }"
+        style="max-width: 70%;">
           <p class="mb-0 small" *ngIf="message.contentType === 'TEXT'">{{ message.content }}</p>
           <img *ngIf="message.contentType === 'IMAGE' && message.fileUrl"
           [src]="'http://localhost:8990/api/v1/file/get-image/' + getFilenameFromUrl(message.fileUrl)" alt="Image"

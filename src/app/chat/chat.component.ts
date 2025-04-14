@@ -498,32 +498,32 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
   }
 
-  async getFriendList() {
-    const email = await this.getUserMailFromToken();
-    if (!email) {
-      console.error('Không tìm thấy email người dùng.');
-      return;
-    }
-    const token = this.getToken();
-    const headers = new HttpHeaders({
-      Authorization: `Bearer ${token}`,
-    });
+  // async getFriendList() {
+  //   const email = await this.getUserMailFromToken();
+  //   if (!email) {
+  //     console.error('Không tìm thấy email người dùng.');
+  //     return;
+  //   }
+  //   const token = this.getToken();
+  //   const headers = new HttpHeaders({
+  //     Authorization: `Bearer ${token}`,
+  //   });
 
-    try {
-      const response = await this.http
-        .get<any>(
-          `http://localhost:8010/api/v1/friends/get-list-friend-by-email/${email}`,
-          { headers }
-        )
-        .toPromise();
-      this.friends = response.data;
-      this.friends.forEach(
-        (friend) => (this.friendMap[friend.friendId] = friend.friendName)
-      );
-    } catch (error) {
-      console.error('Lỗi khi lấy danh sách bạn bè:', error);
-    }
-  }
+  //   try {
+  //     const response = await this.http
+  //       .get<any>(
+  //         `http://localhost:8010/api/v1/friends/get-list-friend-by-email/${email}`,
+  //         { headers }
+  //       )
+  //       .toPromise();
+  //     this.friends = response.data;
+  //     this.friends.forEach(
+  //       (friend) => (this.friendMap[friend.friendId] = friend.friendName)
+  //     );
+  //   } catch (error) {
+  //     console.error('Lỗi khi lấy danh sách bạn bè:', error);
+  //   }
+  // }
 
   async loadFriends() {
     const token = this.getToken();
@@ -537,6 +537,9 @@ export class ChatComponent implements OnInit, OnDestroy {
         .get<any>(`http://localhost:8990/api/v1/chats/list?userId=${userId}`, { headers })
         .toPromise();
       this.chatList = response.data;
+      this.chatList.forEach(
+        (friend) => (this.friendMap[friend.id] = friend.name)
+      );
       console.log('Danh sách chat đã tải:', this.chatList);
     } catch (error) {
       console.error('Lỗi khi tải danh sách chat:', error);
