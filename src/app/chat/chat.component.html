@@ -1,10 +1,9 @@
 <div class="app-container d-flex vh-100">
   <aside class="left-sidebar bg-light d-flex flex-column align-items-center p-3" style="width: 80px;">
     <div class="user-profile mb-3">
-      <div class="avatar rounded-circle" style="width: 40px; height: 40px; background-color: #ddd; overflow: hidden;">
-        <img src="path/to/your/avatar.png" alt="Your Avatar" class="img-fluid rounded-circle" style="border: none;">
-      </div>
-    </div>
+        <img [src]="avatarUrl || 'https://via.placeholder.com/100'" alt="Avatar"
+        style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-right: 10px;">
+            </div>
     <nav class="navigation">
       <ul class="nav flex-column align-items-center">
         <li class="nav-item active mb-2">
@@ -59,7 +58,7 @@
               background-color: #ddd;
               overflow: hidden;
             ">
-          <img [src]="item.avatar || 'path/to/default/avatar.png'" alt="{{ item.name }}"
+          <img  [src]="item.avatarUrl" alt="{{ item.name }}"
             class="img-fluid rounded-circle" style="border: none;">
         </div>
         <div class="info flex-grow-1">
@@ -80,10 +79,18 @@
       <div class="recipient-info d-flex align-items-center">
         <div class="avatar rounded-circle me-2"
           style="width: 35px; height: 35px; background-color: #ddd; overflow: hidden;">
-          <img *ngIf="selectedFriend" [src]="selectedFriend.avatar || 'path/to/default/avatar.png'"
-            alt="{{ selectedFriend.friendName }}" class="img-fluid rounded-circle" style="border: none;">
+          <div class="avatar rounded-circle me-2"
+          style="width: 35px; height: 35px; background-color: #ddd; overflow: hidden;">
+       <img *ngIf="selectedFriendAvatarUrl" [src]="selectedFriendAvatarUrl"
+            alt="{{ selectedFriend?.friendName }}" class="img-fluid rounded-circle" style="border: none;">
+       <img *ngIf="!selectedFriendAvatarUrl && selectedFriend?.avatar" src="path/to/default/avatar.png"
+            alt="{{ selectedFriend?.friendName }}" class="img-fluid rounded-circle" style="border: none;">
+       <img *ngIf="!selectedFriend?.avatar && !selectedFriendAvatarUrl" src="path/to/default/avatar.png"
+            alt="Default Avatar" class="img-fluid rounded-circle" style="border: none;">
+     </div>
         </div>
-        <span class="fw-bold small" *ngIf="selectedFriend">{{ selectedFriend.friendName }}</span>
+        <span class="fw-bold small" *ngIf="selectedFriendId">{{ selectedFriend.friendName }}</span>
+        <span class="fw-bold small" *ngIf="selectedGroupId">{{ selectedGroupName }}</span>
       </div>
       <div class="chat-actions">
         <button *ngIf="selectedFriendId" class="btn btn-sm btn-outline-secondary rounded-circle me-2"
@@ -98,10 +105,12 @@
     <div class="messages flex-grow-1 overflow-auto p-3">
       <div *ngFor="let message of messages" class="mb-2 d-flex"
         [ngClass]="{'justify-content-end': message.senderId === userId, 'justify-content-start': message.senderId !== userId}">
-        <div class="message-content p-2 rounded-pill d-inline-block" [ngClass]="{
-              'bg-primary text-white': message.senderId === userId,
-              'bg-light text-dark': message.senderId !== userId
-            }" style="max-width: 70%;">
+        <div class="message-content p-2 rounded-pill d-inline-block"
+        [ngClass]="{
+          'bg-primary text-white': message.senderId === userId && message.contentType !== 'IMAGE',
+          'bg-light text-dark': message.senderId !== userId && message.contentType !== 'IMAGE'
+        }"
+        style="max-width: 70%;">
           <p class="mb-0 small" *ngIf="message.contentType === 'TEXT'">{{ message.content }}</p>
           <img *ngIf="message.contentType === 'IMAGE' && message.fileUrl"
           [src]="'http://localhost:8990/api/v1/file/get-image/' + getFilenameFromUrl(message.fileUrl)" alt="Image"
