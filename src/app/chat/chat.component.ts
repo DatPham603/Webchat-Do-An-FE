@@ -162,13 +162,14 @@ export class ChatComponent implements OnInit, OnDestroy {
       try {
         const response: any = await this.http.post('http://localhost:8990/api/v1/file/upload-image', formData, { headers }).toPromise();
         this.selectedFile = null;
-        this.sendMessage(response.url, 'IMAGE'); // Gọi sendMessage với URL và contentType
+        this.sendMessage(response.url, 'IMAGE'); 
       } catch (error) {
         console.error('Lỗi tải lên ảnh:', error);
         alert('Không thể tải lên ảnh.');
       }
     }
   }
+
   getFilenameFromUrl(url: string): string | null {
     if (!url) {
       return null;
