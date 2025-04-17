@@ -86,7 +86,7 @@
     background-color: white;
     padding: 20px;
     border-radius: 5px;
-    width: 400px;
+    width: 100%;
     max-width: 90%;
 
     h3 {
@@ -98,5 +98,25 @@
       width: 100%;
       padding: 10px;
       margin-bottom: 15px;
-      border: 1; 
-    }}}
+      border: 1;
+    }
+  }
+}
+
+.chats-list {
+  /* Các style hiện tại của danh sách chat */
+}
+
+.chats-list li {
+  /* Các style hiện tại của mỗi item trong danh sách chat */
+  cursor: pointer; /* Đảm bảo có con trỏ chuột khi hover */
+}
+
+.chats-list li.active {
+  background-color: #e0f7fa;
+}
+
+.chats-list li:hover {
+  background-color: #f5f5f5; 
+}
+

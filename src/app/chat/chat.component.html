@@ -19,7 +19,7 @@
     </nav>
   </aside>
 
-  <section class="chats-section flex-grow-0 d-flex flex-column border-end" style="width: 300px;">
+  <section class="chats-section flex-grow-0 d-flex flex-column border-end" style="width: 400px;">
     <div class="chats-header p-3 d-flex justify-content-between align-items-center">
       <h2 class="h5 mb-0">Chats</h2>
       <button class="btn btn-sm btn-outline-secondary rounded-circle" (click)="openCreateGroupModal()">
@@ -36,7 +36,7 @@
       </div>
       <div *ngIf="foundUser" class="mt-2 small">
         <span>{{ foundUser.email }}</span>
-        <button class="btn btn-sm btn-primary ms-2" (click)="addUserToGroup()">Thêm</button>
+        <!-- <button class="btn btn-sm btn-primary ms-2" (click)="addUserToGroup()">Thêm</button> -->
       </div>
       <div *ngIf="findUserError" class="mt-2 text-danger small">
         {{ findUserError }}
@@ -102,7 +102,7 @@
         </button>
       </div>
     </div>
-    <div class="messages flex-grow-1 overflow-auto p-3">
+    <div #chatContainer class="messages flex-grow-1 overflow-auto p-3">
       <div *ngFor="let message of messages" class="mb-2 d-flex"
         [ngClass]="{'justify-content-end': message.senderId === userId, 'justify-content-start': message.senderId !== userId}">
         <div class="message-content p-2 rounded-pill d-inline-block"
@@ -179,13 +179,23 @@
     </div>
   </div>
 
-  <aside class="right-sidebar bg-light border-start p-3" style="width: 250px">
-    <div class="profile-info mb-3 d-flex flex-column align-items-center">
+  <aside class="right-sidebar bg-light border-start p-3" style="width: 350px">
+    <div *ngIf="selectedGroupId" class="profile-info mb-3 d-flex flex-column align-items-center">
       <div class="avatar rounded-circle" style="width: 50px; height: 50px; background-color: #ddd; overflow: hidden;">
-        <img src="path/to/your/company_logo.png" alt="Company Logo" class="img-fluid rounded-circle" style="border: none;">
+        <i class="bi bi-people-fill fs-4"></i> </div>
+      <h3 class="h6 mt-2 mb-0">{{ selectedGroupName }}</h3> </div>
+  
+    <div *ngIf="selectedFriendId" class="profile-info mb-3 d-flex flex-column align-items-center">
+      <div class="avatar rounded-circle" style="width: 50px; height: 50px; background-color: #ddd; overflow: hidden;">
+        <img *ngIf="selectedFriendAvatarUrl" [src]="selectedFriendAvatarUrl"
+             alt="{{ selectedFriend?.friendName }}" class="img-fluid rounded-circle" style="border: none;">
+        <img *ngIf="!selectedFriendAvatarUrl && selectedFriend?.avatar" src="path/to/default/avatar.png"
+             alt="{{ selectedFriend?.friendName }}" class="img-fluid rounded-circle" style="border: none;">
+        <img *ngIf="!selectedFriend?.avatar && !selectedFriendAvatarUrl" src="path/to/default/avatar.png"
+             alt="Default Avatar" class="img-fluid rounded-circle" style="border: none;">
       </div>
-      <h3 class="h6 mt-2 mb-0">PrimeTek</h3>
-      </div>
+      <h3 class="h6 mt-2 mb-0">{{ selectedFriend?.friendName }}</h3> </div>
+  
     <div class="settings mb-3">
       <div class="setting-item d-flex justify-content-between align-items-center mb-2 small">
         <span>Thông báo</span>
@@ -206,12 +216,26 @@
         </div>
       </div>
     </div>
-    <div class="members">
+  
+    <div class="members" *ngIf="selectedGroupId">
       <div class="members-header d-flex justify-content-between align-items-center mb-2 small">
-        <span class="fw-bold">Thành viên</span>
-        <button class="btn btn-sm btn-outline-secondary">Xem tất cả</button>
+          <span class="fw-bold">Thành viên</span>
+          <button class="btn btn-sm btn-outline-secondary" (click)="openAddMemberModal()">Thêm thành viên</button>      
+      
       </div>
+        <div *ngIf="groupMembers.length > 0" class="members-list overflow-auto" style="max-height: 200px;">
+          <div *ngFor="let member of groupMembers" class="member-item d-flex align-items-center mb-2 small">
+            <div class="avatar rounded-circle me-2" style="width: 25px; height: 25px; background-color: #ddd; overflow: hidden;">
+              <i class="bi bi-person-fill fs-6"></i>
+            </div>
+            <span>{{ member.userName }}</span>
+          </div>
+        </div>
       </div>
+  
+    <div class="members" *ngIf="selectedFriendId">
+      </div>
+  
     <div class="media-links mt-3 d-flex justify-content-around small">
       <button class="btn btn-sm btn-light">Media</button>
       <button class="btn btn-sm btn-light">Link</button>
@@ -236,5 +260,63 @@
     <button (click)="rejectCall()" class="btn btn-danger btn-sm">
       Từ chối
     </button>
+  </div>
+</div>
+
+<div *ngIf="isAddMemberModalOpen" class="modal fade show" style="display: block; background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-dialog-centered  modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Thêm thành viên vào nhóm</h5>
+        <button type="button" class="btn-close" (click)="closeAddMemberModal()"></button>
+      </div>
+      <div class="modal-body">
+        <h6>Chọn từ bạn bè</h6>
+        <!-- <div *ngIf="isLoadingFriends" class="spinner-border spinner-border-sm" role="status">
+          <span class="visually-hidden">Đang tải...</span>
+        </div> -->
+        <!-- <div *ngIf="friendsLoadError" class="text-danger small">{{ friendsLoadError }}</div> -->
+        <ul *ngIf="potentialGroupMembers.length > 0" class="list-unstyled overflow-auto" style="max-height: 150px;">
+          <li *ngFor="let friend of potentialGroupMembers" class="d-flex align-items-center justify-content-between mb-1 small">
+            <span>{{ friend.friendName }}</span>
+            <button class="btn btn-sm btn-primary" (click)="addUserToGroupFromFriend(friend.friendEmail)">Thêm</button>
+          </li>
+        </ul>
+        <!-- <div *ngIf="potentialGroupMembers.length === 0 && !isLoadingFriends && !friendsLoadError">
+          <p class="text-muted small">Bạn chưa có bạn bè nào để thêm.</p>
+        </div> -->
+
+        <hr>
+        <h6>Tìm kiếm theo email</h6>
+        <div class="input-group mb-2">
+          <input type="text" class="form-control form-control-sm" placeholder="Tìm kiếm người dùng theo email"
+            [(ngModel)]="searchEmail" />
+          <button class="btn btn-outline-secondary btn-sm" type="button" (click)="findUserByEmail()">
+            <i class="bi bi-search"></i>
+          </button>
+        </div>
+        <div *ngIf="foundUser" class="mt-2 small d-flex align-items-center justify-content-between">
+          <span>{{ foundUser.email }}</span>
+          <button class="btn btn-sm btn-primary" (click)="addUserToGroup()">Thêm</button>
+        </div>
+        <div *ngIf="findUserError" class="mt-2 text-danger small">
+          {{ findUserError }}
+        </div>
+
+        <hr *ngIf="groupMembers.length > 0">
+        <h6 *ngIf="groupMembers.length > 0">Thành viên hiện tại</h6>
+        <div *ngIf="groupMembers.length > 0" class="members-list overflow-auto" style="max-height: 100px;">
+          <div *ngFor="let member of groupMembers" class="member-item d-flex align-items-center mb-1 small">
+            <div class="avatar rounded-circle me-2" style="width: 20px; height: 20px; background-color: #ddd; overflow: hidden;">
+              <i class="bi bi-person-fill fs-6"></i>
+            </div>
+            <span>{{ member.userName }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" (click)="closeAddMemberModal()">Đóng</button>
+      </div>
+    </div>
   </div>
 </div>
