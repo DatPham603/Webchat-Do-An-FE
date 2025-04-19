@@ -1,0 +1,61 @@
+<div class="container">
+  <div class="card" style="max-width: 600px; margin: 0 auto;">
+    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+      <h5>Thông tin người dùng</h5>
+      <button type="button" class="btn-close" (click)="closeFriendInfo()"></button>
+
+    </div>
+    <div class="card-body">
+      <div class="row mb-3">
+        <div class="col-md-4 fw-bold">Avatar:</div>
+        <div class="col-md-8">
+          <div class="d-flex align-items-center">
+            <img [src]="avatarUrl || 'https://via.placeholder.com/100'" alt="Avatar"
+              style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-right: 10px;">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="row mb-3 align-items-center">
+        <div class="col-md-4 fw-bold">Tên:</div>
+        <div class="col-md-8">
+          {{ user?.userName }}
+        </div>
+      </div>
+
+      <div class="row mb-3 align-items-center">
+        <div class="col-md-4 fw-bold">Email:</div>
+        <div class="col-md-8">
+          {{ user?.email }}
+        </div>
+      </div>
+
+      <div class="row mb-3 align-items-center">
+        <div class="col-md-4 fw-bold">Số điện thoại:</div>
+        <div class="col-md-8">
+          {{ user?.phoneNumber || 'Chưa có' }}
+        </div>
+      </div>
+
+      <div class="row mb-3 align-items-center">
+        <div class="col-md-4 fw-bold">Địa chỉ:</div>
+        <div class="col-md-8">
+          {{ user?.address || 'Chưa có' }}
+        </div>
+      </div>
+
+      <div class="row mb-3 align-items-center">
+        <div class="col-md-4 fw-bold">Ngày sinh:</div>
+        <div class="col-md-8">
+          <ng-container *ngIf="user?.dateOfBirth; else noDateOfBirth">
+            {{ user.dateOfBirth}}
+          </ng-container>
+          <ng-template #noDateOfBirth>
+            Chưa có
+          </ng-template>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

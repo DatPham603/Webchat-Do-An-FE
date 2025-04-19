@@ -119,4 +119,19 @@
 .chats-list li:hover {
   background-color: #f5f5f5; 
 }
+.avatar {
+  position: relative; /* Để làm điểm tham chiếu cho absolute */
+  width: 20px;
+  height: 20px;
+  background-color: #ddd;
+  border-radius: 50%;
+  overflow: hidden;
+}
 
+.bi-person-fill {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* Dịch ngược 50% kích thước của chính nó */
+  font-size: 12px; /* Điều chỉnh kích thước icon */
+}

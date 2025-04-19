@@ -10,6 +10,7 @@ import * as Stomp from 'stompjs';
 import {
   HttpClient,
   HttpClientModule,
+  HttpErrorResponse,
   HttpHeaders,
 } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
@@ -19,11 +20,13 @@ import { UUID } from 'node:crypto';
 import { ChatListItem, ChatMessage, UserDTO } from '../model/dto.model';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { AvatarService } from '../service/avatar.service';
+import { RouterModule } from '@angular/router';
+import { FriendProfileComponent } from './friendProfile/friend-profile.component';
 
 @Component({
   selector: 'app-chat',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule],
+  imports: [CommonModule, FormsModule, HttpClientModule, RouterModule ,FriendProfileComponent],
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.scss'],
   providers: [AvatarService],
@@ -65,7 +68,10 @@ export class ChatComponent implements OnInit, OnDestroy {
   selectedFriendAvatarUrl: SafeUrl | string | null = null;
   isGroupMembersVisible: boolean = false;
   isAddMemberModalOpen: boolean = false;
-  potentialGroupMembers: any[] = []; // Danh sách người dùng tiềm năng để thêm
+  potentialGroupMembers: any[] = []; 
+  isFriendInfoModalOpen: boolean = false; 
+  selectedGroupFriendId: string | null = null;
+
 
 
   @ViewChild('localVideo') localVideo: ElementRef<HTMLVideoElement> | undefined;
@@ -106,6 +112,20 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.stompClient.disconnect();
     }
     this.stopMediaStreams();
+  }
+
+  openFriendInfoModal(friendId: string): void {
+    this.selectedGroupFriendId = friendId;
+    this.isFriendInfoModalOpen = true;
+  }
+
+  closeFriendInfoModal(): void {
+    this.isFriendInfoModalOpen = false;
+    this.selectedGroupFriendId = null;
+  }
+
+  handleShowFriend(friendId: string): void {
+    this.openFriendInfoModal(friendId);
   }
 
   async fetchUserDataAsync(): Promise<void> {
@@ -449,9 +469,17 @@ export class ChatComponent implements OnInit, OnDestroy {
         // Có thể tải lại danh sách thành viên nhóm hoặc hiển thị thông báo thành công
         this.loadGroupMembers(this.selectedGroupId);
       } catch (error) {
-        console.error('Lỗi khi thêm người dùng vào nhóm:', error);
-        // Xử lý lỗi
-      }
+        let errorMessage = 'Đã có lỗi xảy ra khi thêm người dùng vào nhóm.';
+        if (error instanceof HttpErrorResponse) {
+          if (error.error && error.error.message) {
+            errorMessage = error.error.message;
+          } else if (typeof error.error === 'string') {
+            errorMessage = error.error;
+          } else {
+            errorMessage = `Lỗi từ server: ${error.status} - ${error.statusText}`;
+          }
+        }
+        alert(errorMessage);    }
     } else {
       alert('Vui lòng tìm kiếm người dùng trước khi thêm vào nhóm.');
     }
@@ -483,8 +511,17 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.loadGroupMembers(this.selectedGroupId); // Tải lại danh sách thành viên
         // Có thể hiển thị thông báo thành công
       } catch (error) {
-        console.error('Lỗi khi thêm bạn bè vào nhóm:', error);
-        // Xử lý lỗi
+        let errorMessage = 'Đã có lỗi xảy ra khi thêm người dùng vào nhóm.';
+        if (error instanceof HttpErrorResponse) {
+          if (error.error && error.error.message) {
+            errorMessage = error.error.message;
+          } else if (typeof error.error === 'string') {
+            errorMessage = error.error;
+          } else {
+            errorMessage = `Lỗi từ server: ${error.status} - ${error.statusText}`;
+          }
+        }
+        alert(errorMessage);    
       }
     } else {
       alert('Vui lòng chọn một nhóm trước khi thêm bạn bè.');
