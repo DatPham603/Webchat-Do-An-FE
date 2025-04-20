@@ -146,7 +146,7 @@
 
 .media-section .image-gallery {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 0fr)); /* Tạo layout responsive */
+  grid-template-columns: repeat(auto-fill, minmax(150px, 0fr)); 
   gap: 0.3rem;
   padding: 0.3rem 0;
 }
@@ -201,3 +201,7 @@
   overflow: hidden; /* Ngăn cuộn trang */
 }
 
+.choose-file-btn.selected-tab {
+  background-color: #0d6efd; 
+  color: white;
+}

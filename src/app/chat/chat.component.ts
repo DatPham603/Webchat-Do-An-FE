@@ -56,6 +56,9 @@ export class ChatComponent implements OnInit, OnDestroy {
   newGroupName: string = '';
   selectedGroupId: string | null = null;
   selectedGroupName: string | null = null;
+  groupAvatarUrl: string | null = null;
+  isEditingGroupAvatar: boolean = false;
+  groupAvatarFile: File | null = null;
   searchEmail: string = '';
   foundUser: any | null = null;
   findUserError: string | null = null;
@@ -77,13 +80,14 @@ export class ChatComponent implements OnInit, OnDestroy {
   showDocsSection: boolean = false;
   zoomedImageUrl: string | null = null;
 
-
   @ViewChild('localVideo') localVideo: ElementRef<HTMLVideoElement> | undefined;
   @ViewChild('remoteVideo') remoteVideo: | ElementRef<HTMLVideoElement> | undefined;
   @ViewChild('remoteAudio') remoteAudio: | ElementRef<HTMLAudioElement> | undefined;
   @ViewChild('chatContainer') private chatContainer!: ElementRef;
   @ViewChild('fileInput') fileInput!: ElementRef;
   @ViewChild('imageInput') imageInput!: ElementRef;
+  @ViewChild('groupAvatarInput') groupAvatarInput!: ElementRef;
+
 
   private readonly iceServers = {
     iceServers: [
@@ -266,12 +270,10 @@ export class ChatComponent implements OnInit, OnDestroy {
     document.body.classList.remove('disable-scroll'); // Cho phép cuộn trang lại
   }
 
-  // Đóng khi nhấn phím Escape
   @HostListener('document:keydown.escape', ['$event'])
   handleEscapeKey(event: KeyboardEvent): void {
     this.closeZoom();
   }
-
 
   async uploadImage() {
     if (this.selectedFile) {
@@ -292,6 +294,36 @@ export class ChatComponent implements OnInit, OnDestroy {
       }
     }
   }
+
+  onAvatarSelected(event: any): void {
+    this.groupAvatarFile = event.target.files[0];
+  }
+
+  clearAvatarSelection(): void {
+    this.groupAvatarFile = null;
+  }
+
+  async uploadGroupAvatar(): Promise<any> {
+    if (this.groupAvatarFile) {
+      const formData = new FormData();
+      formData.append('avatar', this.groupAvatarFile);
+      try {
+        const response = await this.http
+          .post<any>(`http://localhost:8990/api/v1/groups/upload-group-avatar`, formData)
+          .toPromise();
+          this.groupAvatarUrl = "http://localhost:8990/api/v1/groups/get-group-avatar/${this.getFilenameFromUrl(response.avatar) }"
+          alert('Avatar uploaded successfully:');
+        return response; 
+      } catch (error) {
+        console.error('Error uploading group avatar:', error);
+        throw error; // Re-throw lỗi để component xử lý
+      }
+    } else {
+      console.warn('No image or groupId provided for upload.');
+      return null;
+    }
+  }
+
 
   async loadFile(friendId: string) {
     this.selectedFriendId = friendId;
@@ -678,13 +710,8 @@ export class ChatComponent implements OnInit, OnDestroy {
     // Thêm message vào danh sách
     setTimeout(() => this.scrollToBottom(), 0);
   }
-  //
 
-  // selectFriend(friend: any) {
-  //   this.selectedFriendId = friend.friendId;
-  //   this.selectedFriend = friend;
-  //   this.loadChatHistory(friend.friendId);
-  // }
+
 
   selectChat(item: ChatListItem) {
     if (item.type === 'user') {
@@ -711,6 +738,9 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.selectedGroupName = item.name;
       this.selectedFriendAvatarUrl = null;
       this.messages = [];
+      // this.(item.id); 
+      this.isEditingGroupAvatar = false; 
+      // this.groupAvatarFile = null; 
       this.loadGroupChatHistory(item.id);
       setTimeout(() => this.scrollToBottom(), 0);
       this.loadGroupMembers(item.id)
