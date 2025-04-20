@@ -131,18 +131,16 @@
         }">
         <div class="message-content p-2 rounded-pill d-inline-block" [ngClass]="{
             'bg-primary text-white': message.senderId === userId && message.contentType !== 'IMAGE',
-            'bg-light text-dark': message.senderId !== userId && message.contentType !== 'IMAGE'}" style="max-width: 70%">
+            'bg-light text-dark': message.senderId !== userId && message.contentType !== 'IMAGE'}"
+          style="max-width: 70%">
           <p class="mb-0 small" *ngIf="message.contentType === 'TEXT'">
             {{ message.content }}
           </p>
           <img *ngIf="message.contentType === 'IMAGE' && message.fileUrl" [src]="
               'http://localhost:8990/api/v1/file/get-image/' +
-              getFilenameFromUrl(message.fileUrl)"
-                   (click)="zoomImage(
+              getFilenameFromUrl(message.fileUrl)" (click)="zoomImage(
                     'http://localhost:8990/api/v1/file/get-image/' + getFilenameFromUrl(message.fileUrl)
-                  )"
-              alt="Image" 
-            style="
+                  )" alt="Image" style="
               max-width: 400px;
               height: auto;
               border: none;
@@ -205,45 +203,44 @@
 
   <aside class="right-sidebar bg-light border-start p-3" style="width: 350px">
     <div *ngIf="selectedGroupId" class="profile-info mb-3 d-flex flex-column align-items-center position-relative">
-      <div class="avatar rounded-circle" style="
-            width: 50px;
-            height: 50px;
-            background-color: #ddd;
-            overflow: hidden;
-          ">
+      <div class="position-relative">
         <img
           [src]="groupAvatarUrl || 'https://via.placeholder.com/50'"
           alt="{{ selectedGroupName }}"
           class="img-fluid rounded-circle"
-          style="border: none; object-fit: cover;"
+          style="width: 80px; height: 80px; border: none; object-fit: cover;"
         />
         <ng-container *ngIf="isEditingGroupAvatar; else viewGroupAvatarUpload">
-          <input
-            type="file"
-            class="form-control form-control-sm mt-2"
-            accept="image/png, image/jpeg, image/gif"
-            (change)="onAvatarSelected($event)"
-            #groupAvatarInput
-          />
-          <button *ngIf="groupAvatarFile" class="btn btn-sm btn-primary mt-2" (click)="uploadGroupAvatar()">
+          <div class="d-flex align-items-center mt-2">
+            <input
+              type="file"
+              class="form-control form-control-sm"
+              accept="image/png, image/jpeg, image/gif"
+              (change)="onAvatarSelected($event)"
+              #groupAvatarInputRef
+            />
+          </div>
+            <button class="btn btn-sm btn-secondary mt-2" (click)="clearAvatarSelection()">
+              <i class="bi bi-x"></i> Hủy
+            </button>
+            <button *ngIf="groupAvatarFile" class="btn btn-sm btn-primary mt-2" (click)="uploadGroupAvatar()">
             <i class="bi bi-upload"></i> Tải lên
-          </button>
-          <button *ngIf="groupAvatarFile" class="btn btn-sm btn-secondary mt-2 ms-2" (click)="clearAvatarSelection()">
-            <i class="bi bi-x-lg"></i> Hủy
           </button>
         </ng-container>
         <ng-template #viewGroupAvatarUpload>
           <div
             class="position-absolute bottom-0 end-0 bg-success rounded-circle d-flex justify-content-center align-items-center"
-            style="width: 20px; height: 20px; cursor: pointer;"
+            style="width: 24px; height: 24px; cursor: pointer;"
             (click)="isEditingGroupAvatar = true"
           >
             <i class="bi bi-pencil-fill text-white small"></i>
           </div>
         </ng-template>
       </div>
-      <h3 class="h6 mt-2 mb-0">{{ selectedGroupName }}</h3>
+      <h3 class="h6 mt-2 mb-0 text-center">{{ selectedGroupName }}</h3>
     </div>
+
+
 
     <div *ngIf="selectedFriendId" class="profile-info mb-3 d-flex flex-column align-items-center">
       <div class="avatar rounded-circle" style="
@@ -291,9 +288,8 @@
         </button>
       </div>
       <div *ngIf="groupMembers.length > 0" class="members-list overflow-auto" style="max-height: 200px">
-        <div *ngFor="let member of groupMembers"
-             class="member-item d-flex align-items-center mb-2 small clickable"
-             (click)="openFriendInfoModal(member.id)">
+        <div *ngFor="let member of groupMembers" class="member-item d-flex align-items-center mb-2 small clickable"
+          (click)="openFriendInfoModal(member.id)">
           <div class="avatar rounded-circle me-2" style="
                 width: 25px;
                 height: 25px;
@@ -314,22 +310,22 @@
     <div class="members" *ngIf="selectedFriendId"></div>
 
     <hr>
-    
+
     <div class="media-links mt-3">
       <div class="d-flex justify-content-around small">
-        <button class="btn btn-sm btn-light choose-file-btn" [class.selected-tab]="showMediaSection" (click)="showMedia()">Ảnh</button>
-        <button class="btn btn-sm btn-light choose-file-btn" [class.selected-tab]="showDocsSection" (click)="showDocs()">Files</button>
+        <button class="btn btn-sm btn-light choose-file-btn" [class.selected-tab]="showMediaSection"
+          (click)="showMedia()">Ảnh</button>
+        <button class="btn btn-sm btn-light choose-file-btn" [class.selected-tab]="showDocsSection"
+          (click)="showDocs()">Files</button>
       </div>
-    
+
       <div *ngIf="showMediaSection" class="media-section mt-2">
         <div class="image-gallery">
           <div *ngFor="let image of imageList" class="image-item">
             <img [src]="'http://localhost:8990/api/v1/file/get-image/' + getFilenameFromUrl(image.fileUrl)"
-                 alt="Ảnh chat" 
-                 (click)="zoomImage(
+              alt="Ảnh chat" (click)="zoomImage(
             'http://localhost:8990/api/v1/file/get-image/' + getFilenameFromUrl(image.fileUrl)
-          )"
-                 style="max-width: 150px; height: auto; margin: 5px; border: 1px solid #ccc; border-radius: 5px;">
+          )" style="max-width: 150px; height: auto; margin: 5px; border: 1px solid #ccc; border-radius: 5px;">
           </div>
           <div *ngIf="imageList.length === 0" class="text-muted small">
             Không có ảnh nào trong cuộc trò chuyện này.
@@ -340,8 +336,8 @@
         <ul class="list-unstyled">
           <li *ngFor="let doc of docList" class="doc-item p-2 border-bottom small">
             <i class="bi bi-file-earmark-fill me-2"></i>
-            <a [href]="'http://localhost:8990/api/v1/file/download/' + getFilenameFromUrl(doc.fileUrl)"
-               target="_blank" class="text-decoration-none text-dark">{{ getFilenameFromUrl(doc.fileUrl) }}</a>
+            <a [href]="'http://localhost:8990/api/v1/file/download/' + getFilenameFromUrl(doc.fileUrl)" target="_blank"
+              class="text-decoration-none text-dark">{{ getFilenameFromUrl(doc.fileUrl) }}</a>
           </li>
           <li *ngIf="docList.length === 0" class="text-muted small">
             Không có tài liệu nào trong cuộc trò chuyện này.
@@ -426,31 +422,28 @@
 </div>
 
 <div *ngIf="isCreateGroupModalOpen" class="modal fade show"
-style="display: block; background-color: rgba(0, 0, 0, 0.5)">
-<div class="modal-dialog modal-dialog-centered">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h5 class="modal-title">Tạo nhóm mới</h5>
-      <button type="button" class="btn-close" (click)="closeCreateGroupModal()"></button>
-    </div>
-    <div class="modal-body">
-      <input type="text" [(ngModel)]="newGroupName" class="form-control form-control-sm mb-2"
-        placeholder="Tên nhóm" />
-      <button class="btn btn-primary btn-sm" (click)="createGroup()">
-        Tạo
-      </button>
-      <button class="btn btn-secondary btn-sm ms-2" (click)="closeCreateGroupModal()">
-        Hủy
-      </button>
+  style="display: block; background-color: rgba(0, 0, 0, 0.5)">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Tạo nhóm mới</h5>
+        <button type="button" class="btn-close" (click)="closeCreateGroupModal()"></button>
+      </div>
+      <div class="modal-body">
+        <input type="text" [(ngModel)]="newGroupName" class="form-control form-control-sm mb-2"
+          placeholder="Tên nhóm" />
+        <button class="btn btn-primary btn-sm" (click)="createGroup()">
+          Tạo
+        </button>
+        <button class="btn btn-secondary btn-sm ms-2" (click)="closeCreateGroupModal()">
+          Hủy
+        </button>
+      </div>
     </div>
   </div>
 </div>
-</div>
 
-<friend-infor
-  *ngIf="isFriendInfoModalOpen"
-  [userId]="selectedGroupFriendId"
-  (closeModal)="closeFriendInfoModal()"
+<friend-infor *ngIf="isFriendInfoModalOpen" [userId]="selectedGroupFriendId" (closeModal)="closeFriendInfoModal()"
   style="
     position: fixed;
     top: 0;
@@ -462,8 +455,7 @@ style="display: block; background-color: rgba(0, 0, 0, 0.5)">
     justify-content: center;
     align-items: center;
     z-index: 1000;
-  "
->
+  ">
   <div class="card" style="max-width: 600px; margin: 0 auto;">
-    </div>
+  </div>
 </friend-infor>

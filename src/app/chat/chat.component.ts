@@ -86,7 +86,8 @@ export class ChatComponent implements OnInit, OnDestroy {
   @ViewChild('chatContainer') private chatContainer!: ElementRef;
   @ViewChild('fileInput') fileInput!: ElementRef;
   @ViewChild('imageInput') imageInput!: ElementRef;
-  @ViewChild('groupAvatarInput') groupAvatarInput!: ElementRef;
+  // @ViewChild('groupAvatarInput') groupAvatarInput!: ElementRef;
+  @ViewChild('groupAvatarInputRef') groupAvatarInputRef!: ElementRef;
 
 
   private readonly iceServers = {
@@ -300,19 +301,25 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   clearAvatarSelection(): void {
+    this.isEditingGroupAvatar = false;
     this.groupAvatarFile = null;
   }
 
   async uploadGroupAvatar(): Promise<any> {
-    if (this.groupAvatarFile) {
+    console.log(this.selectedGroupId)
+    if (this.groupAvatarFile && this.selectedGroupId) {
       const formData = new FormData();
-      formData.append('avatar', this.groupAvatarFile);
+      formData.append('image', this.groupAvatarFile);
+      formData.append('groupId', this.selectedGroupId); 
       try {
         const response = await this.http
           .post<any>(`http://localhost:8990/api/v1/groups/upload-group-avatar`, formData)
           .toPromise();
-          this.groupAvatarUrl = "http://localhost:8990/api/v1/groups/get-group-avatar/${this.getFilenameFromUrl(response.avatar) }"
+          console.log(response)
+          this.loadGroupAvatarImage(response.url)
+          this.isEditingGroupAvatar = false;
           alert('Avatar uploaded successfully:');
+          console.log(this.groupAvatarUrl)
         return response; 
       } catch (error) {
         console.error('Error uploading group avatar:', error);
@@ -324,6 +331,13 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
   }
 
+  async loadGroupAvatarImage(filename: string) {
+    try {
+        this.groupAvatarUrl = `http://localhost:8990/api/v1/groups/get-group-avatar/${this.getFilenameFromUrl(filename)}`;
+      } catch (error) {
+      console.error('Lỗi khi tải avatar nhóm:', error);
+    }
+  }
 
   async loadFile(friendId: string) {
     this.selectedFriendId = friendId;
@@ -738,9 +752,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.selectedGroupName = item.name;
       this.selectedFriendAvatarUrl = null;
       this.messages = [];
-      // this.(item.id); 
-      this.isEditingGroupAvatar = false; 
-      // this.groupAvatarFile = null; 
+      this.loadGroupAvatarImage(item.avatar!)
       this.loadGroupChatHistory(item.id);
       setTimeout(() => this.scrollToBottom(), 0);
       this.loadGroupMembers(item.id)
