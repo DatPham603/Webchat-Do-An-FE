@@ -130,22 +130,24 @@
           'justify-content-start': message.senderId !== userId
         }">
         <div class="message-content p-2 rounded-pill d-inline-block" [ngClass]="{
-            'bg-primary text-white':
-              message.senderId === userId && message.contentType !== 'IMAGE',
-            'bg-light text-dark':
-              message.senderId !== userId && message.contentType !== 'IMAGE'
-          }" style="max-width: 70%">
+            'bg-primary text-white': message.senderId === userId && message.contentType !== 'IMAGE',
+            'bg-light text-dark': message.senderId !== userId && message.contentType !== 'IMAGE'}" style="max-width: 70%">
           <p class="mb-0 small" *ngIf="message.contentType === 'TEXT'">
             {{ message.content }}
           </p>
           <img *ngIf="message.contentType === 'IMAGE' && message.fileUrl" [src]="
               'http://localhost:8990/api/v1/file/get-image/' +
-              getFilenameFromUrl(message.fileUrl)
-            " alt="Image" style="
-              max-width: 100%;
+              getFilenameFromUrl(message.fileUrl)"
+                   (click)="zoomImage(
+                    'http://localhost:8990/api/v1/file/get-image/' + getFilenameFromUrl(message.fileUrl)
+                  )"
+              alt="Image" 
+            style="
+              max-width: 400px;
               height: auto;
               border: none;
               background-color: transparent;
+              cursor: pointer; 
             " />
           <a *ngIf="message.contentType === 'FILE' && message.fileUrl" [href]="
               'http://localhost:8990/api/v1/file/download/' +
@@ -155,7 +157,7 @@
                 'btn-light text-dark': message.senderId !== userId,
                 'btn-white text-white': message.senderId === userId
               }">
-              <i class="bi bi-file-earmark-fill me-1"></i> Tải File
+              <i class="bi bi-file-earmark-fill me-1"></i> {{getFilenameFromUrl(message.fileUrl)}}
             </button>
           </a>
         </div>
@@ -164,10 +166,8 @@
             'text-start': message.senderId !== userId
           }">
           {{
-          message.senderId === userId
-          ? "Bạn"
-          : friendMap[message.senderId] || message.senderName
-          }}
+          message.senderId === userId ? "Bạn": friendMap[message.senderId] || message.createdDate }}
+          <!-- sửa lại thành date? -->
         </span>
       </div>
     </div>
@@ -307,10 +307,52 @@
 
     <hr>
     
-    <div class="media-links mt-3 d-flex justify-content-around small">
-      <button class="btn btn-sm btn-light">Media</button>
-      <button class="btn btn-sm btn-light">Link</button>
-      <button class="btn btn-sm btn-light">Docs</button>
+    <div class="media-links mt-3">
+      <div class="d-flex justify-content-around small">
+        <button class="btn btn-sm btn-light" (click)="showMedia()">Ảnh</button>
+        <button class="btn btn-sm btn-light" (click)="showDocs()">Files</button>
+        <!-- <button class="btn btn-sm btn-light">Links</button> -->
+      </div>
+    
+      <div *ngIf="showMediaSection" class="media-section mt-2">
+        <div class="image-gallery">
+          <div *ngFor="let image of imageList" class="image-item">
+            <img [src]="'http://localhost:8990/api/v1/file/get-image/' + getFilenameFromUrl(image.fileUrl)"
+                 alt="Ảnh chat" 
+                 (click)="zoomImage(
+            'http://localhost:8990/api/v1/file/get-image/' + getFilenameFromUrl(image.fileUrl)
+          )"
+                 style="max-width: 120px; height: auto; margin: 5px; border: 1px solid #ccc; border-radius: 5px;">
+          </div>
+          <div *ngIf="imageList.length === 0" class="text-muted small">
+            Không có ảnh nào trong cuộc trò chuyện này.
+          </div>
+        </div>
+      </div>
+      <div *ngIf="showDocsSection" class="docs-section mt-2">
+        <ul class="list-unstyled">
+          <li *ngFor="let doc of docList" class="doc-item p-2 border-bottom small">
+            <i class="bi bi-file-earmark-fill me-2"></i>
+            <a [href]="'http://localhost:8990/api/v1/file/download/' + getFilenameFromUrl(doc.fileUrl)"
+               target="_blank" class="text-decoration-none text-dark">{{ getFilenameFromUrl(doc.fileUrl) }}</a>
+          </li>
+          <li *ngIf="docList.length === 0" class="text-muted small">
+            Không có tài liệu nào trong cuộc trò chuyện này.
+          </li>
+        </ul>
+      </div>
+
+      <!-- <a *ngIf="message.contentType === 'FILE' && message.fileUrl" [href]="
+      'http://localhost:8990/api/v1/file/download/' +
+      getFilenameFromUrl(message.fileUrl)
+    " target="_blank" class="text-decoration-none">
+    <button class="btn btn-sm rounded-pill" [ngClass]="{
+        'btn-light text-dark': message.senderId !== userId,
+        'btn-white text-white': message.senderId === userId
+      }">
+      <i class="bi bi-file-earmark-fill me-1"></i> Tải File
+    </button>
+  </a> -->
     </div>
   </aside>
 
@@ -352,7 +394,7 @@
           </button>
         </div>
         <div *ngIf="foundUser" class="mt-2 small d-flex align-items-center justify-content-between">
-          <span>{{ foundUser.email }}</span>
+          <span>{{ foundUser.userName }}</span>
           <button class="btn btn-sm btn-primary" (click)="addUserToGroup()">
             Thêm
           </button>
@@ -382,6 +424,10 @@
       </div>
     </div>
   </div>
+</div>
+
+<div *ngIf="zoomedImageUrl" class="image-zoom-overlay" (click)="closeZoom()">
+  <img [src]="zoomedImageUrl" class="zoomed-image" [alt]="'Ảnh phóng to'" />
 </div>
 
 <friend-infor

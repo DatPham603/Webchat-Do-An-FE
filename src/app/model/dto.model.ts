@@ -15,8 +15,8 @@ export interface ChatMessage {
     receiverId: string;
     content: string;
     createdDate?: Date;
-    type: 'CHAT' | 'OFFER' | 'ANSWER' | 'ICECANDIDATE' | 'REJECT' | 'GROUP_CHAT';
-    fileUrl?: string; // Thêm trường cho URL file/image
+    type: 'CHAT' | 'JOIN' | 'LEAVE' | 'GROUP_CHAT' | 'OFFER';
+    fileUrl?: string; 
     contentType?: 'TEXT' | 'IMAGE' | 'FILE';
 }
 
