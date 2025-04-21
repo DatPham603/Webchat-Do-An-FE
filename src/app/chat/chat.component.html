@@ -61,9 +61,10 @@
             width: 35px;
             height: 35px;
             background-color: #ddd;
-            overflow: hidden;
+            object-fit: cover;
           ">
-          <img [src]="item.avatarUrl" alt="{{ item.name }}" class="img-fluid rounded-circle" style="border: none" />
+          <img *ngIf="item.type === 'user'" [src]="item.avatarUrl" alt="{{ item.name }}" class="avatar-sm img-fluid rounded-circle" style="border: none" />
+          <img *ngIf="item.type === 'group'" [src]="item.avatarUrl" alt="{{ item.name }}" class="avatar-sm img-fluid rounded-circle" style="border: none" />
         </div>
         <div class="info flex-grow-1">
           <span class="d-block fw-bold small">{{ item.name }}</span>
@@ -74,6 +75,9 @@
             <span *ngIf="item.type === 'group'">{{
               item.lastMessage || "No messages yet"
               }}</span>
+            <!-- <span *ngIf="item.contentType === 'group'">{{
+                "file"
+                }}</span> -->
           </p>
           <span *ngIf="item.type === 'group'" class="text-muted small">({{ item.memberCount }} members)</span>
         </div>
@@ -91,20 +95,29 @@
             width: 35px;
             height: 35px;
             background-color: #ddd;
-            overflow: hidden;
-          ">
+            object-fit: cover;">
           <div class="avatar rounded-circle me-2" style="
               width: 35px;
               height: 35px;
               background-color: #ddd;
               overflow: hidden;
-            ">
+            " *ngIf="selectedFriendId" >
             <img *ngIf="selectedFriendAvatarUrl" [src]="selectedFriendAvatarUrl" alt="{{ selectedFriend?.friendName }}"
-              class="img-fluid rounded-circle" style="border: none" />
+              class="avatar-sm img-fluid rounded-circle" style="border: none" />
             <img *ngIf="!selectedFriendAvatarUrl && selectedFriend?.avatar" src="path/to/default/avatar.png"
-              alt="{{ selectedFriend?.friendName }}" class="img-fluid rounded-circle" style="border: none" />
+              alt="{{ selectedFriend?.friendName }}" class=" avatar-sm img-fluid rounded-circle" style="border: none" />
             <img *ngIf="!selectedFriend?.avatar && !selectedFriendAvatarUrl" src="path/to/default/avatar.png"
-              alt="Default Avatar" class="img-fluid rounded-circle" style="border: none" />
+              alt="Default Avatar" class="avatar-sm img-fluid rounded-circle" style="border: none" />
+          </div>
+          <div class="avatar rounded-circle me-2" style="
+              width: 35px;
+              height: 35px;
+              background-color: #ddd;
+              overflow: hidden;
+            " *ngIf="selectedGroupId" >
+            <img [src]="groupAvatarUrl" alt="{{ selectedFriend?.friendName }}"
+              class="avatar-sm img-fluid rounded-circle" style="border: none" />
+            
           </div>
         </div>
         <span class="fw-bold small" *ngIf="selectedFriendId">{{
@@ -244,10 +257,7 @@
 
     <div *ngIf="selectedFriendId" class="profile-info mb-3 d-flex flex-column align-items-center">
       <div class="avatar rounded-circle" style="
-          width: 50px;
-          height: 50px;
-          background-color: #ddd;
-          overflow: hidden;
+          width: 80px; height: 80px; border: none; object-fit: cover;
         ">
         <img *ngIf="selectedFriendAvatarUrl" [src]="selectedFriendAvatarUrl" alt="{{ selectedFriend?.friendName }}"
           class="img-fluid rounded-circle" style="border: none" />

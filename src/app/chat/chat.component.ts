@@ -319,7 +319,6 @@ export class ChatComponent implements OnInit, OnDestroy {
           this.loadGroupAvatarImage(response.url)
           this.isEditingGroupAvatar = false;
           alert('Avatar uploaded successfully:');
-          console.log(this.groupAvatarUrl)
         return response; 
       } catch (error) {
         console.error('Error uploading group avatar:', error);
@@ -336,6 +335,16 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.groupAvatarUrl = `http://localhost:8990/api/v1/groups/get-group-avatar/${this.getFilenameFromUrl(filename)}`;
       } catch (error) {
       console.error('Lỗi khi tải avatar nhóm:', error);
+    }
+  }
+
+  async loadGroupAvatarImage2(filename: string): Promise<string | SafeUrl> {
+    try {
+      const imageUrl = `http://localhost:8990/api/v1/groups/get-group-avatar/${this.getFilenameFromUrl(filename)}`;
+      return imageUrl;
+    } catch (error) {
+      console.error('Lỗi khi tải avatar nhóm:', error);
+      return 'path/to/default/group-avatar.png'; // Trả về URL mặc định khi có lỗi
     }
   }
 
@@ -851,23 +860,32 @@ export class ChatComponent implements OnInit, OnDestroy {
 
       this.chatList = await Promise.all(response.data.map(async (item: ChatListItem & { avatarUrl?: SafeUrl | string }) => {
         if (item.avatar) {
-          try {
-            const blob = await this.avatarService.getAvatarImage(this.getFilenameFromUrl(item.avatar)!).toPromise();
-            if (blob) { // Add this check
-              const reader = new FileReader();
-              return new Promise<ChatListItem & { avatarUrl?: SafeUrl | string }>((resolve) => {
-                reader.onloadend = () => {
-                  resolve({ ...item, avatarUrl: this.sanitizer.bypassSecurityTrustUrl(reader.result as string) });
-                };
-                reader.readAsDataURL(blob);
-              });
-            } else {
-              console.warn('Không nhận được blob dữ liệu avatar:', item.avatar);
+          if (item.type === 'user') {
+            try {
+              const blob = await this.avatarService.getAvatarImage(this.getFilenameFromUrl(item.avatar)!).toPromise();
+              if (blob) {
+                const reader = new FileReader();
+                return new Promise<ChatListItem & { avatarUrl?: SafeUrl | string }>((resolve) => {
+                  reader.onloadend = () => {
+                    resolve({ ...item, avatarUrl: this.sanitizer.bypassSecurityTrustUrl(reader.result as string) });
+                  };
+                  reader.readAsDataURL(blob);
+                });
+              } else {
+                console.warn('Không nhận được blob dữ liệu avatar:', item.avatar);
+                return { ...item, avatarUrl: 'path/to/default/avatar.png' };
+              }
+            } catch (error) {
+              console.error('Lỗi khi tải avatar:', error);
               return { ...item, avatarUrl: 'path/to/default/avatar.png' };
             }
-          } catch (error) {
-            console.error('Lỗi khi tải avatar:', error);
-            return { ...item, avatarUrl: 'path/to/default/avatar.png' };
+          } else if (item.type === 'group') {
+            // return { ...item, avatarUrl: this.loadGroupAvatarImage(item.avatar) }; 
+            return { ...item, avatarUrl: await this.loadGroupAvatarImage2(item.avatar) };
+          } else {
+            // Xử lý trường hợp item.type không phải 'user' hoặc 'group' nhưng có avatar
+            console.warn(`Loại chat không xác định (${item.type}) nhưng có avatar:`, item.avatar);
+            return { ...item, avatarUrl: 'path/to/default/avatar.png' }; // Hoặc một logic xử lý khác
           }
         } else {
           return { ...item, avatarUrl: 'path/to/default/avatar.png' };
