@@ -70,7 +70,6 @@
   flex-grow: 2;
   min-height: 500px; /* Hoặc một giá trị phù hợp */
 }
-
 .modal {
   position: fixed;
   top: 0;
@@ -81,22 +80,133 @@
   display: flex;
   justify-content: center;
   align-items: center;
+}
 
-  .modal-content {
-    background-color: white;
-    padding: 20px;
-    border-radius: 5px;
-    width: 400px;
-    max-width: 90%;
+.modal .modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 5px;
+  width: 100%;
+  max-width: 90%;
+}
 
-    h3 {
-      margin-top: 0;
-      margin-bottom: 15px;
-    }
+.modal .modal-content h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+}
 
-    input[type="text"] {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 15px;
-      border: 1; 
-    }}}
+.modal .modal-content input[type="text"] {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc; /* Thêm border cho input */
+}
+
+.chats-list li {
+  cursor: pointer; /* Đảm bảo có con trỏ chuột khi hover */
+}
+
+.chats-list li.active {
+  background-color: #e0f7fa;
+}
+
+.chats-list li:hover {
+  background-color: #f5f5f5;
+}
+
+.avatar {
+  position: relative; 
+  width: 20px;
+  height: 20px;
+  background-color: #ddd;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.avatar-sm{
+  width: 100%;
+  height: 100%;
+}
+
+.bi-person-fill {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* Dịch ngược 50% kích thước của chính nó */
+  font-size: 12px; /* Điều chỉnh kích thước icon */
+}
+
+.media-section {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-top: 1px solid #eee;
+}
+
+.media-section h6 {
+  margin-bottom: 0.5rem;
+  color: #555;
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.media-section .image-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 0fr)); 
+  gap: 0.3rem;
+  padding: 0.3rem 0;
+}
+
+.media-section .image-gallery .image-item img {
+  width: 100%; /* Ảnh chiếm toàn bộ container */
+  height: auto;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease-in-out;
+}
+
+.media-section .image-gallery .image-item img:hover {
+  transform: scale(1.05); /* Hiệu ứng zoom nhẹ khi hover */
+  cursor: pointer;
+}
+
+.media-section .image-gallery .text-muted {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.image-gallery .image-item img {
+  /* Các style hiện tại của bạn */
+  cursor: pointer; 
+}
+
+/* your-component.css */
+.image-zoom-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8); 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  cursor: pointer; 
+}
+
+.zoomed-image {
+  max-width: 95%;
+  max-height: 95%;
+  object-fit: contain; /* Đảm bảo toàn bộ ảnh hiển thị */
+}
+
+.disable-scroll {
+  overflow: hidden; /* Ngăn cuộn trang */
+}
+
+.choose-file-btn.selected-tab {
+  background-color: #0d6efd; 
+  color: white;
+}
