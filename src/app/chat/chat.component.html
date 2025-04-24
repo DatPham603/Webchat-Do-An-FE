@@ -33,14 +33,31 @@
     </div>
     <div class="search-bar p-3">
       <div class="input-group">
-        <input type="text" class="form-control form-control-sm" placeholder="Tìm kiếm người dùng theo email" />
-        <button class="btn btn-outline-secondary btn-sm" type="button">
+        <input type="text" class="form-control form-control-sm"
+          placeholder="Tìm kiếm người dùng theo email hoặc số điện thoại" [(ngModel)]="searchTerm" />
+        <button class="btn btn-outline-secondary btn-sm" type="button" (click)="findUserByEmailOrPhoneNumber()">
           <i class="bi bi-search"></i>
         </button>
       </div>
-      <div *ngIf="foundUser" class="mt-2 small">
-        <span>{{ foundUser.email }}</span>
-        <!-- <button class="btn btn-sm btn-primary ms-2" (click)="addUserToGroup()">Thêm</button> -->
+      <div *ngIf="foundUserToAdd" class="mt-2 small d-flex align-items-center justify-content-between">
+        <div  class="member-item d-flex align-items-center mb-2 small clickable"
+         (click)="openFriendInfoModal(foundUserToAdd.id)">
+          <div class="avatar rounded-circle me-2" style="
+            width: 25px;
+            height: 25px;
+            background-color: #ddd;
+            overflow: hidden;
+            ">
+            <img [src]="
+              foundUserToAdd.avatar
+                ? 'http://localhost:8989/api/v1/users/avatar/get-avatar/' + getFilenameFromUrl(foundUserToAdd.avatar)
+                : 'path/to/default-avatar.png'
+            " alt="{{ foundUserToAdd.userName }}" class="avatar-sm img-fluid rounded-circle " style="border: none; object-fit: cover" />
+          </div>
+          <span>{{ foundUserToAdd.userName }}</span>
+        </div>
+        <button class="btn btn-sm btn-primary ms-2">Kết bạn</button>
+        <!-- thêm sự kiện click vào đây để kết bạn -->
       </div>
       <div *ngIf="findUserError" class="mt-2 text-danger small">
         {{ findUserError }}
@@ -63,8 +80,8 @@
             background-color: #ddd;
             object-fit: cover;
           ">
-          <img *ngIf="item.type === 'user'" [src]="item.avatarUrl" alt="{{ item.name }}" class="avatar-sm img-fluid rounded-circle" style="border: none" />
-          <img *ngIf="item.type === 'group'" [src]="item.avatarUrl" alt="{{ item.name }}" class="avatar-sm img-fluid rounded-circle" style="border: none" />
+          <img *ngIf="item.type === 'user'" [src]="item.avatarUrl" alt="{{ item.name }}" class="avatar-sm img-fluid rounded-circle" style="border: none; object-fit: cover" />
+          <img *ngIf="item.type === 'group'" [src]="item.avatarUrl" alt="{{ item.name }}" class="avatar-sm img-fluid rounded-circle" style="border: none; object-fit: cover" />
         </div>
         <div class="info flex-grow-1">
           <span class="d-block fw-bold small">{{ item.name }}</span>
@@ -202,7 +219,7 @@
         </div>
         <div class="input-field flex-grow-1 me-2">
           <input type="text" class="form-control form-control-sm rounded-pill" [(ngModel)]="messageInput"
-            placeholder="Viết tin nhắn..." />
+            placeholder="Viết tin nhắn..." (keyup.enter)="sendMessage()"/>
         </div>
         <div class="send-button">
           <button class="btn btn-primary btn-sm rounded-pill" (click)="sendMessage()">

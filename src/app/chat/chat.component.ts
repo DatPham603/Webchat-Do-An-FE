@@ -60,7 +60,9 @@ export class ChatComponent implements OnInit, OnDestroy {
   isEditingGroupAvatar: boolean = false;
   groupAvatarFile: File | null = null;
   searchEmail: string = '';
+  searchTerm: string = '';
   foundUser: any | null = null;
+  foundUserToAdd: any | null = null;
   findUserError: string | null = null;
   groupMembers: any[] = [];
   selectedFile: File | null = null;
@@ -596,6 +598,41 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.findUserError = null;
     }
   }
+
+  async findUserByEmailOrPhoneNumber() {
+    if (this.searchTerm.trim()) {
+      const token = this.getToken();
+      const headers = new HttpHeaders({
+        Authorization: `Bearer ${token}`,
+      });
+
+      try {
+        const response = await this.http
+          .get<any>(
+            `http://localhost:8989/api/v1/users/auto-complete?searchTerm=${this.searchTerm}`,
+            { headers }
+          )
+          .toPromise();
+        this.foundUserToAdd = response.data;
+        this.findUserError = null;
+      } catch (error: any) {
+        console.error('Lỗi khi tìm kiếm người dùng:', error);
+        this.foundUser = null;
+        this.findUserError = 'Không tìm thấy người dùng với email này.';
+        if (error.status === 404) {
+          this.findUserError = 'Không tìm thấy người dùng với email này.';
+        } else {
+          this.findUserError = 'Lỗi khi tìm kiếm người dùng.';
+        }
+      }
+    } else if (!this.selectedGroupId) {
+      alert('Vui lòng chọn một nhóm trước khi thêm người dùng.');
+    } else {
+      this.foundUser = null;
+      this.findUserError = null;
+    }
+  }
+  
   async loadFriendsForGroup() {
 
     const token = this.getToken();
