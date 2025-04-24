@@ -67,6 +67,9 @@ export class ChatComponent implements OnInit, OnDestroy {
   groupMembers: any[] = [];
   selectedFile: File | null = null;
   selectedImageUrl: string | null = null;
+  isFilePending: boolean = false; 
+  uploadImageError: string | null = null;
+  uploadFileError: string | null = null;
   selectedAvatar: File | null = null;
   avatarUrl: SafeUrl | null = null;
   user: UserDTO = {};
@@ -183,32 +186,19 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   onFileSelected(event: any) {
     this.selectedFile = event.target.files[0];
-    this.uploadFile();
+    this.selectedImageUrl = null; // Reset image preview
+    this.isFilePending = true;
   }
 
   onImageSelected(event: any) {
     this.selectedFile = event.target.files[0];
-    this.uploadImage();
-  }
-
-  async uploadFile() {
-    if (this.selectedFile) {
-      const formData = new FormData();
-      formData.append('file', this.selectedFile);
-      const token = this.getToken();
-      const headers = new HttpHeaders({
-        'Authorization': `Bearer ${token}`
-      });
-
-      try {
-        const response: any = await this.http.post('http://localhost:8990/api/v1/file/upload-file', formData, { headers }).toPromise();
-        this.selectedFile = null;
-        this.sendMessage(response.url, 'FILE'); // Gọi sendMessage với URL và contentType
-      } catch (error) {
-        console.error('Lỗi tải lên file:', error);
-        alert('Không thể tải lên file.');
-      }
-    }
+    this.isFilePending = true;
+    // Tạo URL để hiển thị ảnh preview
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      this.selectedImageUrl = e.target.result;
+    };
+    reader.readAsDataURL(this.selectedFile!);
   }
 
   async loadImages(friendId: string) {
@@ -276,26 +266,6 @@ export class ChatComponent implements OnInit, OnDestroy {
   @HostListener('document:keydown.escape', ['$event'])
   handleEscapeKey(event: KeyboardEvent): void {
     this.closeZoom();
-  }
-
-  async uploadImage() {
-    if (this.selectedFile) {
-      const formData = new FormData();
-      formData.append('image', this.selectedFile);
-      const token = this.getToken();
-      const headers = new HttpHeaders({
-        'Authorization': `Bearer ${token}`
-      });
-
-      try {
-        const response: any = await this.http.post('http://localhost:8990/api/v1/file/upload-image', formData, { headers }).toPromise();
-        this.selectedFile = null;
-        this.sendMessage(response.url, 'IMAGE');
-      } catch (error) {
-        console.error('Lỗi tải lên ảnh:', error);
-        alert('Không thể tải lên ảnh.');
-      }
-    }
   }
 
   onAvatarSelected(event: any): void {
@@ -632,7 +602,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.findUserError = null;
     }
   }
-  
+
   async loadFriendsForGroup() {
 
     const token = this.getToken();
@@ -771,14 +741,31 @@ export class ChatComponent implements OnInit, OnDestroy {
     setTimeout(() => this.scrollToBottom(), 0);
   }
 
+  getOriginFilenameFromUrl(fileUrl: string): string {
+    if (fileUrl) {
+      // Tách URL theo dấu gạch chéo để lấy phần cuối cùng (tên file có thể chứa UUID)
+      const parts = fileUrl.split('/');
+      const filenameWithUUID = parts[parts.length - 1];
 
+      // Tìm vị trí của dấu gạch dưới đầu tiên để tách UUID và tên gốc
+      const firstUnderscoreIndex = filenameWithUUID.indexOf('_');
+
+      if (firstUnderscoreIndex !== -1) {
+        return filenameWithUUID.substring(firstUnderscoreIndex + 1);
+      } else {
+        // Nếu không có dấu gạch dưới, trả về toàn bộ tên file (trường hợp không có UUID)
+        return filenameWithUUID;
+      }
+    }
+    return ''; // Trả về chuỗi rỗng nếu URL không tồn tại
+  }
 
   selectChat(item: ChatListItem) {
     if (item.type === 'user') {
       this.selectedGroupId = null;
       this.selectedGroupName = null;
       this.selectedFriendId = item.id;
-      this.selectedFriend = { friendId: item.id, friendName: item.name, avatar: item.avatar }; // Tạo một object tương tự như 'friend' cũ
+      this.selectedFriend = { friendId: item.id, friendName: item.name, avatar: item.avatar }; 
       this.selectedFriendAvatarUrl = null; // Reset previous avatar URL
       setTimeout(() => this.scrollToBottom(), 0);
       if (this.selectedFriend.avatar) {
@@ -917,12 +904,10 @@ export class ChatComponent implements OnInit, OnDestroy {
               return { ...item, avatarUrl: 'path/to/default/avatar.png' };
             }
           } else if (item.type === 'group') {
-            // return { ...item, avatarUrl: this.loadGroupAvatarImage(item.avatar) }; 
             return { ...item, avatarUrl: await this.loadGroupAvatarImage2(item.avatar) };
           } else {
-            // Xử lý trường hợp item.type không phải 'user' hoặc 'group' nhưng có avatar
             console.warn(`Loại chat không xác định (${item.type}) nhưng có avatar:`, item.avatar);
-            return { ...item, avatarUrl: 'path/to/default/avatar.png' }; // Hoặc một logic xử lý khác
+            return { ...item, avatarUrl: 'path/to/default/avatar.png' }; 
           }
         } else {
           return { ...item, avatarUrl: 'path/to/default/avatar.png' };
@@ -959,19 +944,44 @@ export class ChatComponent implements OnInit, OnDestroy {
     );
   }
 
-  sendMessage(fileUrl: string | null = null, contentType: 'TEXT' | 'IMAGE' | 'FILE' = 'TEXT') {
-    if ((this.messageInput || fileUrl) && this.userId) {
+  async sendMessage() {
+    if ((this.messageInput || this.isFilePending) && this.userId) {
+      let fileUrl: string | null = null;
+      let contentType: 'TEXT' | 'IMAGE' | 'FILE' = 'TEXT';
+
+      if (this.isFilePending && this.selectedFile) {
+        if (this.selectedFile.type.startsWith('image/')) {
+          contentType = 'IMAGE';
+          fileUrl = await this.uploadImage(); 
+          if (this.uploadImageError) {
+            this.uploadImageError = null; 
+            return; 
+          }
+        } else {
+          contentType = 'FILE';
+          fileUrl = await this.uploadFile(); 
+          if (this.uploadFileError) {
+            this.uploadFileError = null;
+            return; 
+          }
+        }
+      } else if (this.messageInput) {
+        contentType = 'TEXT';
+      } else {
+        return; 
+      }
+
       let receiverId: string;
       let messageType: 'CHAT' | 'GROUP_CHAT';
 
       if (this.selectedGroupId) {
         receiverId = this.selectedGroupId;
         messageType = 'GROUP_CHAT';
-        this.onNewMessage()
+        this.onNewMessage();
       } else if (this.selectedFriendId) {
         receiverId = this.selectedFriendId;
         messageType = 'CHAT';
-        this.onNewMessage()
+        this.onNewMessage();
       } else {
         return; // Không có người nhận được chọn
       }
@@ -1002,18 +1012,95 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.messages.push(chatMessage);
       this.updateMediaAndDocs();
       this.updateChatListItem(chatMessage);
+      setTimeout(() => this.scrollToBottom(), 0);
       this.messageInput = '';
       this.selectedFile = null;
       this.selectedImageUrl = null;
+      this.isFilePending = false; 
       this.fileInput.nativeElement.value = '';
       this.imageInput.nativeElement.value = '';
     }
   }
 
+  cancelPendingFile() {
+    this.selectedFile = null;
+    this.selectedImageUrl = null;
+    this.isFilePending = false;
+    this.fileInput.nativeElement.value = '';
+    this.imageInput.nativeElement.value = '';
+  }
+
+  async uploadFile(): Promise<string | null> {
+    if (this.selectedFile) {
+      const formData = new FormData();
+      formData.append('file', this.selectedFile);
+      try {
+        const response = await this.http
+          .post<any>('http://localhost:8990/api/v1/file/upload-file', formData)
+          .toPromise();
+        console.log('File uploaded:', response);
+        this.uploadFileError = null;
+        return response.url;
+      } catch (error: any) {
+        let errorMessage = 'Đã có lỗi xảy ra khi tải lên file.';
+        console.error('Lỗi khi tải lên file:', error);
+        if (error instanceof HttpErrorResponse) {
+          if (error.status === 413) {
+            errorMessage = 'Kích thước file tải lên quá lớn. Vui lòng chọn file nhỏ hơn.';
+          } else if (error.error && error.error.message) {
+            errorMessage = error.error.message;
+          } else if (typeof error.error === 'string') {
+            errorMessage = error.error;
+          } else {
+            errorMessage = `Lỗi từ server: ${error.message}`;
+          }
+        }
+        this.uploadFileError = errorMessage; 
+        alert(errorMessage); 
+        return null;
+      }
+    }
+    return null;
+  }
+
+  async uploadImage(): Promise<string | null> {
+    if (this.selectedFile) {
+      const formData = new FormData();
+      formData.append('image', this.selectedFile);
+
+      try {
+        const response = await this.http
+          .post<any>('http://localhost:8990/api/v1/file/upload-image', formData)
+          .toPromise();
+        console.log('Image uploaded:', response);
+        this.uploadImageError = null; 
+        return response.url;
+      } catch (error: any) {
+        let errorMessage = 'Đã có lỗi xảy ra khi tải lên ảnh.';
+        if (error instanceof HttpErrorResponse) {
+          if (error.status === 413) {
+            errorMessage = 'Kích thước file tải lên quá lớn. Vui lòng chọn file nhỏ hơn.';
+          } else if (error.error && error.error.message) {
+            errorMessage = error.error.message;
+          } else if (typeof error.error === 'string') {
+            errorMessage = error.error;
+          } else {
+            errorMessage = `Lỗi từ server: ${error.message}`;
+          }
+        }
+        this.uploadImageError = errorMessage; 
+        alert(errorMessage); 
+        return null;
+      }
+    }
+    return null;
+  }
+
+  // cập nhật file/image sidebar phải
   updateChatListItem(newMessage: ChatMessage) {
     const receiverOrGroupId = newMessage.type === 'CHAT' ?
       newMessage.senderId === this.userId ? newMessage.receiverId : newMessage.senderId :
-      newMessage.receiverId; // groupId cho tin nhắn nhóm
+      newMessage.receiverId; 
 
     const index = this.chatList.findIndex(item => item.id === receiverOrGroupId);
     if (index !== -1) {
@@ -1035,9 +1122,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 
     const socket = new SockJS(`http://localhost:8095/ws-chat?token=${token}`);
     this.stompClient = Stomp.over(socket);
-    this.stompClient.connect(
-      {},
-      () => {
+    this.stompClient.connect({},() => {
         console.log('Kết nối WebSocket thành công');
 
         this.stompClient.subscribe(`/user/queue/messages`, (message: any) => {
@@ -1047,9 +1132,9 @@ export class ChatComponent implements OnInit, OnDestroy {
             chatMessage.receiverId === this.userId
           ) {
             // Chỉ hiển thị tin nhắn 1-1 cho người nhận
+            setTimeout(() => this.scrollToBottom(), 0);
             this.messages.push(chatMessage);
             this.updateChatListItem(chatMessage);
-            setTimeout(() => this.scrollToBottom(), 0);
           }
           console.log('Tin nhắn cá nhân nhận được:', chatMessage);
         });

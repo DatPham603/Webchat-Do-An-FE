@@ -136,12 +136,6 @@
   font-size: 12px; /* Điều chỉnh kích thước icon */
 }
 
-.media-section {
-  margin-top: 1rem;
-  padding: 1rem;
-  border-top: 1px solid #eee;
-}
-
 .media-section h6 {
   margin-bottom: 0.5rem;
   color: #555;
@@ -166,7 +160,7 @@
 }
 
 .media-section .image-gallery .image-item img:hover {
-  transform: scale(1.05); /* Hiệu ứng zoom nhẹ khi hover */
+  transform: scale(1.05); 
   cursor: pointer;
 }
 
@@ -174,6 +168,22 @@
   grid-column: 1 / -1;
   text-align: center;
   padding: 1rem 0;
+}
+
+.image-gallery {
+  max-height: 270px; 
+  width: 320px;
+  overflow-y: auto; 
+  border: 1px solid #eee; 
+  padding: 5px;
+}
+
+.doc-gallery{
+  max-height: 270px; 
+  width: 320px;
+  overflow-y: auto; 
+  border: 1px solid #eee; 
+  padding: 5px; 
 }
 
 .image-gallery .image-item img {

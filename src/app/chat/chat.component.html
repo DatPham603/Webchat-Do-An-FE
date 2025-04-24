@@ -24,7 +24,7 @@
     </nav>
   </aside>
 
-  <section class="chats-section flex-grow-0 d-flex flex-column border-end" style="width: 400px">
+  <section class="chats-section flex-grow-0 d-flex flex-column border-end" style="width: 380px">
     <div class="chats-header p-3 d-flex justify-content-between align-items-center">
       <h2 class="h5 mb-0">Chats</h2>
       <button class="btn btn-sm btn-outline-secondary rounded-circle" (click)="openCreateGroupModal()">
@@ -34,7 +34,7 @@
     <div class="search-bar p-3">
       <div class="input-group">
         <input type="text" class="form-control form-control-sm"
-          placeholder="Tìm kiếm người dùng theo email hoặc số điện thoại" [(ngModel)]="searchTerm" />
+          placeholder="Tìm kiếm người dùng theo email/số điện thoại" [(ngModel)]="searchTerm" (keyup.enter)="findUserByEmailOrPhoneNumber()" />
         <button class="btn btn-outline-secondary btn-sm" type="button" (click)="findUserByEmailOrPhoneNumber()">
           <i class="bi bi-search"></i>
         </button>
@@ -92,6 +92,8 @@
             <span *ngIf="item.type === 'group'">{{
               item.lastMessage || "No messages yet"
               }}</span>
+
+              <!-- nếu item.contentype == 'file' thì hiển thị tên file -->
             <!-- <span *ngIf="item.contentType === 'group'">{{
                 "file"
                 }}</span> -->
@@ -137,12 +139,8 @@
             
           </div>
         </div>
-        <span class="fw-bold small" *ngIf="selectedFriendId">{{
-          selectedFriend.friendName
-          }}</span>
-        <span class="fw-bold small" *ngIf="selectedGroupId">{{
-          selectedGroupName
-          }}</span>
+        <span class="fw-bold small" *ngIf="selectedFriendId">{{selectedFriend.friendName}}</span>
+        <span class="fw-bold small" *ngIf="selectedGroupId">{{selectedGroupName}}</span>
       </div>
       <div class="chat-actions">
         <button *ngIf="selectedFriendId" class="btn btn-sm btn-outline-secondary rounded-circle me-2"
@@ -185,7 +183,7 @@
                 'btn-light text-dark': message.senderId !== userId,
                 'btn-white text-white': message.senderId === userId
               }">
-              <i class="bi bi-file-earmark-fill me-1"></i> {{getFilenameFromUrl(message.fileUrl)}}
+              <i class="bi bi-file-earmark-fill me-1"></i> {{getOriginFilenameFromUrl(message.fileUrl)}}
             </button>
           </a>
         </div>
@@ -200,31 +198,45 @@
       </div>
     </div>
     <div class="message-input-area p-3 border-top">
-      <div class="d-flex align-items-center">
-        <div class="input-actions me-2">
-          <button class="btn btn-sm btn-light rounded-circle me-1">
-            <i class="bi bi-plus"></i>
-          </button>
-          <input type="file" (change)="onFileSelected($event)" style="display: none" #fileInput />
-          <button class="btn btn-sm btn-light rounded-circle me-1" (click)="fileInput.click()">
-            <i class="bi bi-paperclip"></i>
-          </button>
-          <input type="file" accept="image/*" (change)="onImageSelected($event)" style="display: none" #imageInput />
-          <button class="btn btn-sm btn-light rounded-circle me-1" (click)="imageInput.click()">
-            <i class="bi bi-image-fill"></i>
-          </button>
-          <button class="btn btn-sm btn-light rounded-circle">
-            <i class="bi bi-emoji-smile-fill"></i>
+      <div class="d-flex flex-column">
+        <div *ngIf="isFilePending && selectedFile" class="pending-file mb-2 d-flex align-items-center">
+          <div *ngIf="selectedImageUrl" class="image-preview me-2" style="max-width: 50px; max-height: 50px; overflow: hidden;">
+            <img [src]="selectedImageUrl" alt="Preview" style="width: 100%; height: auto;">
+          </div>
+          <div *ngIf="!selectedImageUrl" class="file-info me-2">
+            <i class="bi bi-file-earmark-fill me-1"></i> {{ selectedFile.name }}
+          </div>
+          <button class="btn btn-sm btn-outline-danger rounded-circle" (click)="cancelPendingFile()">
+            <i class="bi bi-x-lg"></i>
           </button>
         </div>
-        <div class="input-field flex-grow-1 me-2">
-          <input type="text" class="form-control form-control-sm rounded-pill" [(ngModel)]="messageInput"
-            placeholder="Viết tin nhắn..." (keyup.enter)="sendMessage()"/>
-        </div>
-        <div class="send-button">
-          <button class="btn btn-primary btn-sm rounded-pill" (click)="sendMessage()">
-            <i class="bi bi-send-fill"></i>
-          </button>
+    
+        <div class="d-flex align-items-center">
+          <div class="input-actions me-2">
+            <button class="btn btn-sm btn-light rounded-circle me-1">
+              <i class="bi bi-plus"></i>
+            </button>
+            <input type="file" (change)="onFileSelected($event)" style="display: none" #fileInput />
+            <button class="btn btn-sm btn-light rounded-circle me-1" (click)="fileInput.click()">
+              <i class="bi bi-paperclip"></i>
+            </button>
+            <input type="file" accept="image/*" (change)="onImageSelected($event)" style="display: none" #imageInput />
+            <button class="btn btn-sm btn-light rounded-circle me-1" (click)="imageInput.click()">
+              <i class="bi bi-image-fill"></i>
+            </button>
+            <button class="btn btn-sm btn-light rounded-circle">
+              <i class="bi bi-emoji-smile-fill"></i>
+            </button>
+          </div>
+          <div class="input-field flex-grow-1 me-2">
+            <input type="text" class="form-control form-control-sm rounded-pill" [(ngModel)]="messageInput"
+              placeholder="Viết tin nhắn..." (keyup.enter)="sendMessage()" />
+          </div>
+          <div class="send-button">
+            <button class="btn btn-primary btn-sm rounded-pill" (click)="sendMessage()">
+              <i class="bi bi-send-fill"></i>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -360,11 +372,11 @@
         </div>
       </div>
       <div *ngIf="showDocsSection" class="docs-section mt-2">
-        <ul class="list-unstyled">
+        <ul class="list-unstyled doc-gallery">
           <li *ngFor="let doc of docList" class="doc-item p-2 border-bottom small">
             <i class="bi bi-file-earmark-fill me-2"></i>
             <a [href]="'http://localhost:8990/api/v1/file/download/' + getFilenameFromUrl(doc.fileUrl)" target="_blank"
-              class="text-decoration-none text-dark">{{ getFilenameFromUrl(doc.fileUrl) }}</a>
+              class="text-decoration-none text-dark">{{ getOriginFilenameFromUrl(doc.fileUrl) }}</a>
           </li>
           <li *ngIf="docList.length === 0" class="text-muted small">
             Không có tài liệu nào trong cuộc trò chuyện này.
