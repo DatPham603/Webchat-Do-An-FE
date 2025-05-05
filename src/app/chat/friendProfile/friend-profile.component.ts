@@ -78,7 +78,6 @@ export class FriendProfileComponent implements OnInit, OnDestroy {
     }
   }
 
-
   // onFriendClick(friendId: string): void {
   //   this.showFriend.emit(friendId);
   // }

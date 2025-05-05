@@ -40,8 +40,11 @@ export class ChatComponent implements OnInit, OnDestroy {
   chatList: (ChatListItem & { avatarUrl?: SafeUrl | string })[] = [];
   selectedFriend: any | null = null;
   messages: ChatMessage[] = [];
+  groupMessages: ChatMessage[] = [];
   messageInput = '';
   friendMap: { [key: string]: string } = {};
+  friendMapImage: { [key: string]: string } = {};
+  queueFriendMapImage: { [key: string]: string } = {};
   localStream: MediaStream | null = null;
   remoteStream: MediaStream | null = null;
   peerConnection: RTCPeerConnection | null = null;
@@ -84,6 +87,11 @@ export class ChatComponent implements OnInit, OnDestroy {
   showMediaSection: boolean = false;
   showDocsSection: boolean = false;
   zoomedImageUrl: string | null = null;
+  showConfirmationModal: boolean = false;
+  private subscriptions: any[] = [];
+  messageIdToDelete: string | null = null;
+  isSidebarHidden: boolean = false;
+  private groupSubscriptions: { [groupId: string]: any[] } = {};
 
   @ViewChild('localVideo') localVideo: ElementRef<HTMLVideoElement> | undefined;
   @ViewChild('remoteVideo') remoteVideo: | ElementRef<HTMLVideoElement> | undefined;
@@ -125,6 +133,12 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.stompClient.disconnect();
     }
     this.stopMediaStreams();
+  }
+
+
+  //đóng mở sidebar
+  toggleSidebar(): void {
+    this.isSidebarHidden = !this.isSidebarHidden;
   }
 
   openFriendInfoModal(friendId: string): void {
@@ -336,7 +350,6 @@ export class ChatComponent implements OnInit, OnDestroy {
         )
         .toPromise();
       this.docList = response.data;
-      console.log("danh sach file:" + this.docList)
     } catch (error) {
       console.error('Lỗi khi tải lịch sử tin nhắn:', error);
     }
@@ -448,9 +461,7 @@ export class ChatComponent implements OnInit, OnDestroy {
         console.log('Nhóm đã tạo:', response.data);
         this.closeCreateGroupModal();
         this.newGroupName = '';
-        // this.selectedInitialMembers = [];
         this.selectGroup(response.data);
-        // this.loadChatList();
       } catch (error: any) {
         console.error('Lỗi khi tạo nhóm:', error);
         if (error.error && error.error.message) {
@@ -484,7 +495,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   selectGroup(group: any) {
-    this.selectedFriendId = null; // Bỏ chọn bạn bè cá nhân
+    this.selectedFriendId = null; 
     this.selectedGroupId = group.id;
     this.selectedGroupName = group.name;
     this.messages = []; // Xóa tin nhắn cũ
@@ -504,7 +515,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     try {
       const response = await this.http
         .get<any>(
-          `http://localhost:8990/api/v1/chats/room/history/${groupId}`, // Endpoint BE cho lịch sử chat nhóm
+          `http://localhost:8990/api/v1/chats/room/history/${groupId}`, 
           { headers }
         )
         .toPromise();
@@ -516,13 +527,42 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
   }
 
+subscribeToAllGroups() {
+  // Lấy danh sách tất cả các nhóm từ chatList
+  const groups = this.chatList.filter(item => item.type === 'group');
+  groups.forEach(group => {
+    console.log("tất cả group được subcribe")
+    this.subscribeToGroupUpdates(group.id);
+  });
+}
+
+// Đăng ký chỉ để cập nhật sidebar cho một nhóm
+subscribeToGroupUpdates(groupId: string) {
+  if (!this.groupSubscriptions[groupId]) {
+    this.groupSubscriptions[groupId] = [];
+  }
+  
+  const messageSub = this.stompClient.subscribe(`/topic/rooms/${groupId}`, (message: any) => {
+    const chatMessage: ChatMessage = JSON.parse(message.body);
+    // Chỉ cập nhật sidebar, không thêm vào messages
+    this.updateChatListItem(chatMessage);
+  });
+  
+  this.groupSubscriptions[groupId].push(messageSub);
+}
+
   subscribeToGroupTopic(groupId: string) {
-    // if (this.stompClient && this.stompClient.connected) {
-    this.stompClient.subscribe(`/topic/rooms/${groupId}`, (message: any) => {
+    this.unsubscribeAll();
+
+    const messageSub = this.stompClient.subscribe(`/topic/rooms/${groupId}`, (message: any) => {
       const chatMessage: ChatMessage = JSON.parse(message.body);
-      if (chatMessage.senderId !== this.userId) {
-        this.messages.push(chatMessage);
-        setTimeout(() => this.scrollToBottom(), 0);
+      if (chatMessage.senderId !== this.userId && chatMessage.type === 'GROUP_CHAT') {
+        if (this.selectedGroupId === groupId) {
+          this.messages.push(chatMessage);
+          setTimeout(() => this.scrollToBottom(), 50);
+        }
+        this.updateChatListItem(chatMessage);
+        setTimeout(() => this.scrollToBottom(), 50);
       }
       console.log('Tin nhắn nhóm nhận được:', chatMessage);
     });
@@ -532,7 +572,17 @@ export class ChatComponent implements OnInit, OnDestroy {
       // Xử lý thông báo nhóm (ví dụ: thành viên mới tham gia)
       this.loadGroupMembers(groupId); // Tải lại danh sách thành viên nhóm nếu cần
     });
-    // }
+
+    this.subscriptions.push(messageSub);
+  }
+
+  private unsubscribeAll() {
+    this.subscriptions.forEach(sub => {
+      if (sub && typeof sub.unsubscribe === 'function') {
+        sub.unsubscribe();
+      }
+    });
+    this.subscriptions = [];
   }
 
   async findUserByEmail() {
@@ -604,7 +654,6 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   async loadFriendsForGroup() {
-
     const token = this.getToken();
     const userId = this.userId;
     if (!token || !userId) {
@@ -719,6 +768,9 @@ export class ChatComponent implements OnInit, OnDestroy {
     try {
       const response = await this.http.get<any>(`http://localhost:8990/api/v1/groups/get-group-users/${groupId}`, { headers }).toPromise();
       this.groupMembers = response.data;
+      this.groupMembers.forEach(member => { 
+        this.friendMapImage[member.id] = member.avatar!; 
+      });
       console.log('Thành viên nhóm:', this.groupMembers);
     } catch (error) {
       console.error('Lỗi khi tải thành viên nhóm:', error);
@@ -737,7 +789,6 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   // Gọi hàm này mỗi khi có tin nhắn mới
   onNewMessage(): void {
-    // Thêm message vào danh sách
     setTimeout(() => this.scrollToBottom(), 0);
   }
 
@@ -767,7 +818,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.selectedFriendId = item.id;
       this.selectedFriend = { friendId: item.id, friendName: item.name, avatar: item.avatar }; 
       this.selectedFriendAvatarUrl = null; // Reset previous avatar URL
-      setTimeout(() => this.scrollToBottom(), 0);
+      setTimeout(() => this.scrollToBottom(), 80);
       if (this.selectedFriend.avatar) {
         this.loadSelectedFriendAvatar(this.selectedFriend.avatar);
       } else {
@@ -787,7 +838,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.messages = [];
       this.loadGroupAvatarImage(item.avatar!)
       this.loadGroupChatHistory(item.id);
-      setTimeout(() => this.scrollToBottom(), 0);
+      setTimeout(() => this.scrollToBottom(), 80);
       this.loadGroupMembers(item.id)
       console.log(item.id)
       this.loadImageGroupChatHistory(item.id)
@@ -796,14 +847,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.showDocsSection = false;      
       // Di chuyển logic subscribe vào đây, đảm bảo stompClient đã kết nối
       if (this.stompClient && this.stompClient.connected) {
-        this.stompClient.subscribe(`/topic/rooms/${this.selectedGroupId}`, (message: any) => {
-          const chatMessage: ChatMessage = JSON.parse(message.body);
-          if (chatMessage.senderId !== this.userId) {
-            this.messages.push(chatMessage);
-            this.updateChatListItem(chatMessage);
-          }
-          console.log('Tin nhắn nhóm nhận được:', chatMessage);
-        });
+        this.subscribeToGroupTopic(this.selectedGroupId);
       } else {
         console.error('Stomp client không hoạt động khi chọn nhóm.');
       }
@@ -881,7 +925,6 @@ export class ChatComponent implements OnInit, OnDestroy {
       const response = await this.http
         .get<any>(`http://localhost:8990/api/v1/chats/list?userId=${userId}`, { headers })
         .toPromise();
-
       this.chatList = await Promise.all(response.data.map(async (item: ChatListItem & { avatarUrl?: SafeUrl | string }) => {
         if (item.avatar) {
           if (item.type === 'user') {
@@ -913,9 +956,13 @@ export class ChatComponent implements OnInit, OnDestroy {
           return { ...item, avatarUrl: 'path/to/default/avatar.png' };
         }
       }));
+      this.subscribeToAllGroups();
 
       this.chatList.forEach(
         (friend) => (this.friendMap[friend.id] = friend.name)
+      );
+      this.chatList.forEach(
+        (friend) => (this.queueFriendMapImage[friend.id] = friend.avatar!)
       );
       console.log('Danh sách chat đã tải:', this.chatList);
     } catch (error) {
@@ -1009,7 +1056,10 @@ export class ChatComponent implements OnInit, OnDestroy {
         JSON.stringify(chatMessage)
       );
 
-      this.messages.push(chatMessage);
+      if ((this.selectedGroupId && messageType === 'GROUP_CHAT' && receiverId === this.selectedGroupId) || 
+              (this.selectedFriendId && messageType === 'CHAT' && receiverId === this.selectedFriendId)) {
+         this.messages.push(chatMessage);
+      }
       this.updateMediaAndDocs();
       this.updateChatListItem(chatMessage);
       setTimeout(() => this.scrollToBottom(), 0);
@@ -1096,7 +1146,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     return null;
   }
 
-  // cập nhật file/image sidebar phải
+  // cập nhật sidebar trái (danh sách chat list)
   updateChatListItem(newMessage: ChatMessage) {
     const receiverOrGroupId = newMessage.type === 'CHAT' ?
       newMessage.senderId === this.userId ? newMessage.receiverId : newMessage.senderId :
@@ -1110,6 +1160,39 @@ export class ChatComponent implements OnInit, OnDestroy {
     } else {
       console.warn('Không tìm thấy item trong chatList để cập nhật:', newMessage);
     }
+  }
+
+  confirmDeleteMessage(messageId: string) {
+    this.messageIdToDelete = messageId;
+    this.showConfirmationModal = true;
+  }
+
+  async deleteMessage(messageId: any) {
+
+    const url = `http://localhost:8990/api/v1/messages/delete-message/${this.userId}/${messageId}`;
+
+    try {
+      const response = await this.http.delete<any>(url).toPromise();
+      this.messages = this.messages.filter(message => message.id !== messageId);
+      alert("xóa tin nhắn thành công")
+      console.log('Xóa tin nhắn thành công:', response);
+      // Thực hiện bất kỳ logic nào sau khi xóa thành công (ví dụ: cập nhật UI)
+    } catch (error: any) {
+      console.error('Lỗi khi xóa tin nhắn:', error);
+      // Xử lý lỗi (ví dụ: hiển thị thông báo lỗi cho người dùng)
+    }
+  }
+
+  deleteConfirmed() {
+    if (this.messageIdToDelete) {
+      this.deleteMessage(this.messageIdToDelete);
+    }
+    this.showConfirmationModal = false;
+  }
+
+  deleteCancelled() {
+    this.showConfirmationModal = false;
+    this.messageIdToDelete = null;
   }
 
   async initChat() {
@@ -1129,11 +1212,14 @@ export class ChatComponent implements OnInit, OnDestroy {
           const chatMessage: ChatMessage = JSON.parse(message.body);
           if (
             chatMessage.senderId !== this.userId &&
-            chatMessage.receiverId === this.userId
+            chatMessage.receiverId === this.userId &&
+            chatMessage.type === 'CHAT'
           ) {
             // Chỉ hiển thị tin nhắn 1-1 cho người nhận
-            setTimeout(() => this.scrollToBottom(), 0);
-            this.messages.push(chatMessage);
+            if (this.selectedFriendId === chatMessage.senderId) {
+              this.messages.push(chatMessage);
+              setTimeout(() => this.scrollToBottom(), 50);
+            }
             this.updateChatListItem(chatMessage);
           }
           console.log('Tin nhắn cá nhân nhận được:', chatMessage);

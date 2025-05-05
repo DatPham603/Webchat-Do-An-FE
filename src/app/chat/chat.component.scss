@@ -103,7 +103,7 @@
 }
 
 .chats-list li {
-  cursor: pointer; /* Đảm bảo có con trỏ chuột khi hover */
+  cursor: pointer; 
 }
 
 .chats-list li.active {
@@ -144,14 +144,16 @@
 }
 
 .media-section .image-gallery {
+  width: 330px;
+  max-height: 270px; 
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 0fr)); 
-  gap: 0.3rem;
-  padding: 0.3rem 0;
+  gap: 0.2rem;
+  padding: 0.2rem 0;
 }
 
 .media-section .image-gallery .image-item img {
-  width: 100%; /* Ảnh chiếm toàn bộ container */
+  width: 100%; 
   height: auto;
   border: 1px solid #ddd;
   border-radius: 5px;
@@ -160,7 +162,7 @@
 }
 
 .media-section .image-gallery .image-item img:hover {
-  transform: scale(1.05); 
+  transform: scale(1.02); 
   cursor: pointer;
 }
 
@@ -180,7 +182,7 @@
 
 .doc-gallery{
   max-height: 270px; 
-  width: 320px;
+  width: 330px;
   overflow-y: auto; 
   border: 1px solid #eee; 
   padding: 5px; 
@@ -220,3 +222,8 @@
   background-color: #0d6efd; 
   color: white;
 }
+
+.message-contents{
+  --bs-gutter-x: 0;
+}
+
