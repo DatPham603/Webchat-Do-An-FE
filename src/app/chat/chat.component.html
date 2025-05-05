@@ -58,7 +58,8 @@
           </div>
           <span>{{ foundUserToAdd.userName }}</span>
         </div>
-        <button class="btn btn-sm btn-primary ms-2">Kết bạn</button>
+        <button class="btn btn-sm btn-primary ms-2" (click)="sendFriendRequest(foundUserToAdd.id)">Kết bạn</button> 
+        <!-- gửi lời mời kết bạn, nếu đã là bạn bè thì không cần, nếu chưa thì cần kết bạn, bên kia nhận được yêu cầu, cần API danh sách lời mời kết bạn, acp -->
         <!-- thêm sự kiện click vào đây để kết bạn -->
       </div>
       <div *ngIf="findUserError" class="mt-2 text-danger small">

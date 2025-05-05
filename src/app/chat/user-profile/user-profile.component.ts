@@ -165,36 +165,6 @@ export class UserProfileComponent implements OnInit, OnDestroy {
     this.selectedAvatar = null;
   }
 
-  // async uploadAvatar(): Promise<void> {
-  //   if (this.selectedAvatar) {
-  //     const formData = new FormData();
-  //     formData.append('avatar', this.selectedAvatar);
-
-  //     const token = this.getToken();
-  //     const headers = new HttpHeaders({
-  //       Authorization: `Bearer ${token}`,
-  //     });
-
-  //     try {
-  //       const response = await this.http
-  //         .post<any>(`http://localhost:8989/api/v1/users/avatar/upload-avatar`, formData, { headers })
-  //         .toPromise();
-  //       if (response?.url) {
-  //         this.user = { ...this.user, avatar: response.avatar }; // Cập nhật avatar
-  //         this.selectedAvatar = null; // Xóa ảnh đã chọn sau khi tải lên
-  //         alert('Avatar uploaded successfully:');
-  //         this.loadAvatarImage(response.url); // Tải lại ảnh mới sau khi upload
-  //       } else {
-  //         console.error('Failed to upload avatar.');
-  //       }
-  //     } catch (error) {
-  //       console.error('Error uploading avatar:', error);
-  //     }
-  //   } else {
-  //     console.warn('No avatar selected.');
-  //   }
-  // }
-
   async uploadAvatar(): Promise<void> {
     if (this.selectedAvatar) {
       const formData = new FormData();

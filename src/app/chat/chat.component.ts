@@ -559,10 +559,10 @@ subscribeToGroupUpdates(groupId: string) {
       if (chatMessage.senderId !== this.userId && chatMessage.type === 'GROUP_CHAT') {
         if (this.selectedGroupId === groupId) {
           this.messages.push(chatMessage);
-          setTimeout(() => this.scrollToBottom(), 50);
+          setTimeout(() => this.scrollToBottom(), 40);
         }
         this.updateChatListItem(chatMessage);
-        setTimeout(() => this.scrollToBottom(), 50);
+        setTimeout(() => this.scrollToBottom(), 40);
       }
       console.log('Tin nhắn nhóm nhận được:', chatMessage);
     });
@@ -645,11 +645,34 @@ subscribeToGroupUpdates(groupId: string) {
           this.findUserError = 'Lỗi khi tìm kiếm người dùng.';
         }
       }
-    } else if (!this.selectedGroupId) {
-      alert('Vui lòng chọn một nhóm trước khi thêm người dùng.');
     } else {
       this.foundUser = null;
       this.findUserError = null;
+    }
+  }
+
+  async sendFriendRequest(friendId: string): Promise<void> {
+    const userId = this.userId;
+    const token = this.getToken();
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+    });
+    console.log(headers);
+    try {
+      const response = await this.http
+      .post<any>(
+        `http://localhost:8010/api/v1/friends/send-request?userId=${userId}&friendId=${friendId}`,
+        {},
+        { headers: headers } 
+      )
+      .toPromise();
+      console.log('Yêu cầu kết bạn đã được gửi:', response);
+      const button = document.getElementById(`addFriendButton-${friendId}`);
+      if (button) {
+        button.innerText = 'Đã gửi';
+      }
+    } catch (error) {
+      console.error('Lỗi khi gửi yêu cầu kết bạn:', error);
     }
   }
 
@@ -734,7 +757,7 @@ subscribeToGroupUpdates(groupId: string) {
       try {
         await this.http
           .post<any>(
-            `http://localhost:8990/api/v1/groups/${this.selectedGroupId}/add-user`, // Endpoint có thể khác
+            `http://localhost:8990/api/v1/groups/${this.selectedGroupId}/add-user`, 
             body,
             { headers }
           )
@@ -1000,6 +1023,7 @@ subscribeToGroupUpdates(groupId: string) {
         if (this.selectedFile.type.startsWith('image/')) {
           contentType = 'IMAGE';
           fileUrl = await this.uploadImage(); 
+          setTimeout(() => this.scrollToBottom(), 40);
           if (this.uploadImageError) {
             this.uploadImageError = null; 
             return; 
@@ -1030,7 +1054,7 @@ subscribeToGroupUpdates(groupId: string) {
         messageType = 'CHAT';
         this.onNewMessage();
       } else {
-        return; // Không có người nhận được chọn
+        return; 
       }
 
       const chatMessage: ChatMessage = {
