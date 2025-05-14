@@ -38,6 +38,17 @@ export class ChatComponent implements OnInit, OnDestroy {
   email: string | null = null;
   friends: any[] = [];
   chatList: (ChatListItem & { avatarUrl?: SafeUrl | string })[] = [];
+  chatListItems: ChatListItem[] = []; 
+  // MAP SANG VÍ DỤ backendData.data.map(mapUserToChatListItem);
+//   VÍ DỤ mapUserToChatListItem(userData: any): ChatListItem {
+//   return {
+//     type: 'user',
+//     id: userData.id,
+//     name: userData.userName,
+//     email: userData.email,
+//     avatarUrl: userData.avatar ? `http://localhost:8989/api/v1/users/avatar/get-avatar/${userData.avatar.split('/').pop()}` : null,
+//   };
+// } => CÓ CHATLISTITEM => FILTER THÔI 
   selectedFriend: any | null = null;
   messages: ChatMessage[] = [];
   groupMessages: ChatMessage[] = [];

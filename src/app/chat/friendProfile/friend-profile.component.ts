@@ -23,6 +23,8 @@ export class FriendProfileComponent implements OnInit, OnDestroy {
   email: string | null = null;
   selectedAvatar: File | null = null;
   avatarUrl: SafeUrl | null = null;
+  isFriend: boolean = false;
+  currentUserId: string | null = null;
   private readonly destroy$ = new Subject<void>();
 
   constructor(
@@ -34,13 +36,16 @@ export class FriendProfileComponent implements OnInit, OnDestroy {
 
 
   async ngOnInit(): Promise<void> {
+    await this.getUserMailFromToken();
     this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
       const idFromRoute = params.get('id');
       if (idFromRoute) {
         this.userId = idFromRoute;
         this.fetchFriendDataAsync(this.userId);
+         this.checkFriendshipStatus(this.currentUserId, this.userId);
       } else if (this.userId) { 
         this.fetchFriendDataAsync(this.userId);
+        this.checkFriendshipStatus(this.currentUserId, this.userId);
       } else {
         console.error('Không có ID người bạn.');
       }
@@ -51,7 +56,51 @@ export class FriendProfileComponent implements OnInit, OnDestroy {
     return localStorage.getItem('accessToken');
   }
 
-  // Hàm này giờ sẽ nhận userId trực tiếp
+  async getUserMailFromToken() {
+    const token = this.getToken();
+    console.log(token)
+    if (token) {
+      try {
+        const payloadBase64 = token.split('.')[1];
+        const payloadJson = atob(payloadBase64);
+        const payload = JSON.parse(payloadJson);
+        this.email = payload.sub;
+
+        if (this.email) {
+          this.currentUserId = await this.getCurrentUserId(this.email);
+          console.log("thng tin nguoi dung hien tai:"+ this.currentUserId)
+        } else {
+          console.error('Email không được tìm thấy trong token.');
+          return null;
+        }
+        return this.email; 
+      } catch (error) {
+        console.error('Lỗi giải mã token:', error);
+        return null;
+      }
+    }
+    return null;
+  }
+
+  async getCurrentUserId(email: string) {
+    const token = this.getToken();
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+    });
+
+    try {
+      const response = await this.http
+        .get<any>(`http://localhost:8989/api/v1/users/find-by-email/${email}`, {
+          headers,
+        })
+        .toPromise();
+      return response.data.id;
+    } catch (error) {
+      console.error('Lỗi khi lấy userId:', error);
+      return null;
+    }
+  }
+
   async fetchFriendDataAsync(friendId: string): Promise<void> {
     const token = this.getToken();
     const headers = new HttpHeaders({
@@ -77,6 +126,22 @@ export class FriendProfileComponent implements OnInit, OnDestroy {
       // Xử lý lỗi
     }
   }
+
+    async checkFriendshipStatus(currentUserId: any, friendId: any): Promise<void> {
+        const token = this.getToken();
+        const headers = new HttpHeaders({
+            Authorization: `Bearer ${token}`,
+        });
+        try {
+            const response = await this.http.get<any>(`http://localhost:8010/api/v1/friends/check?userId=${currentUserId}&friendId=${friendId}`, { headers, })
+                .toPromise();
+            this.isFriend = response || false;
+            console.log("bạn bè "+ this.isFriend)
+        } catch (error) {
+            console.error('Lỗi khi kiểm tra trạng thái bạn bè:', error);
+            this.isFriend = false;
+        }
+    }
 
   // onFriendClick(friendId: string): void {
   //   this.showFriend.emit(friendId);
@@ -111,6 +176,7 @@ export class FriendProfileComponent implements OnInit, OnDestroy {
         }
       );
   }
+
   closeFriendInfo(): void {
     this.closeModal.emit(); // Phát sự kiện đóng modal
   }

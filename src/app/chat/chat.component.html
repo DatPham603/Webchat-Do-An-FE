@@ -1,240 +1,258 @@
-<div class="app-container d-flex vh-100">
-  <aside class="left-sidebar bg-light d-flex flex-column align-items-center p-3" style="width: 80px">
-    <div class="user-profile mb-3">
-      <img [src]="avatarUrl || 'https://via.placeholder.com/100'" alt="Avatar" style="
-          width: 60px;
-          height: 60px;
-          border-radius: 50%;
-          object-fit: cover;
-          margin-right: 10px;
-        " />
+<div class="app-container d-flex flex-column vh-100">
+  <div class="top-search-bar bg-light p-2 d-flex justify-content-between align-items-center border-bottom">
+  <div class="user-profile me-3">
+    <img [src]="avatarUrl || 'https://via.placeholder.com/100'" alt="Avatar" style="
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+    " />
+  </div>
+  <!-- search -->
+  <div class="flex-grow-1 d-flex justify-content-center">
+    <div class="input-group" style="width: 800px;">
+      <span class="input-group-text bg-transparent border-end-0">
+        <i class="bi bi-search"></i>
+      </span>
+      <input type="text" class="form-control form-control-sm" style="max-width: 800px"
+        placeholder="Tìm kiếm người dùng theo email" />
     </div>
-    <nav class="navigation">
-      <ul class="nav flex-column align-items-center">
-        <li class="nav-item active mb-2">
-          <a class="nav-link text-center"><i class="bi bi-chat-fill fs-5"></i></a>
-        </li>
-        <li class="nav-item mb-2">
-          <a class="nav-link text-center"><i class="bi bi-bell-fill fs-5"></i></a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link text-center"><i class="bi bi-gear-fill fs-5"></i></a>
-        </li>
-      </ul>
-    </nav>
-  </aside>
+  </div>
 
-  <section class="chats-section flex-grow-0 d-flex flex-column border-end" style="width: 380px">
-    <div class="chats-header p-3 d-flex justify-content-between align-items-center">
-      <h2 class="h5 mb-0">Chats</h2>
-      <button class="btn btn-sm btn-outline-secondary rounded-circle" (click)="openCreateGroupModal()">
-        <i class="bi bi-plus"></i>
-      </button>
-    </div>
-    <div class="search-bar p-3">
-      <div class="input-group">
-        <input type="text" class="form-control form-control-sm" placeholder="Lọc theo tên/email hoặc nhóm"
-          [(ngModel)]="searchTerm" (keyup.enter)="filterUsers()" />
-        <button class="btn btn-outline-secondary btn-sm" type="button" (click)="filterUsers()">
-          <i class="bi bi-search"></i>
+  <div style="width: 60px;"></div>
+</div>
+
+  <div class="d-flex flex-grow-1 overflow-hidden">
+    <aside class="left-sidebar bg-light d-flex flex-column align-items-center p-3" style="width: 80px">
+      <nav class="navigation">
+        <ul class="nav flex-column align-items-center">
+          <li class="nav-item active mb-2">
+            <a class="nav-link text-center"><i class="bi bi-chat-fill fs-5"></i></a>
+          </li>
+          <li class="nav-item mb-2">
+            <a class="nav-link text-center"><i class="bi bi-bell-fill fs-5"></i></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-center"><i class="bi bi-gear-fill fs-5"></i></a>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <section class="chats-section flex-grow-0 d-flex flex-column border-end" style="width: 380px">
+      <div class="chats-header p-2 d-flex justify-content-between align-items-center">
+        <h2 class="h5 mb-0">Trò chuyện</h2>
+        <button class="btn btn-sm btn-outline-secondary rounded-circle" (click)="openCreateGroupModal()">
+          <i class="bi bi-plus"></i>
         </button>
       </div>
+      <div class="search-bar p-2">
+        <div class="input-group">
+          <input type="text" class="form-control form-control-sm" placeholder="Lọc theo tên/email hoặc nhóm"
+            [(ngModel)]="searchTerm" (keyup.enter)="filterUsers()" />
+          <button class="btn btn-outline-secondary btn-sm" type="button" (click)="filterUsers()">
+            <i class="bi bi-search"></i>
+          </button>
+        </div>
 
-      <div *ngIf="foundUsersByNameList && foundUsersByNameList.length > 0" class="mt-2 small">
-        <div *ngFor="let user of foundUsersByNameList" class="member-item d-flex align-items-center mb-2 small">
-          <div class="d-flex align-items-center clickable" *ngIf="user.type === 'user'"
-            (click)="openFriendInfoModal(user.id)" [style.cursor]="'pointer'">
-            <div class="avatar rounded-circle me-2" style="
+        <div *ngIf="foundUsersByNameList && foundUsersByNameList.length > 0" class="mt-2 small">
+          <div *ngFor="let user of foundUsersByNameList" class="member-item d-flex align-items-center mb-2 small">
+            <div class="d-flex align-items-center clickable" *ngIf="user.type === 'user'"
+              (click)="openFriendInfoModal(user.id)" [style.cursor]="'pointer'">
+              <div class="avatar rounded-circle me-2" style="
                   width: 25px;
                   height: 25px;
                   background-color: #ddd;
                   overflow: hidden;
                   ">
-              <img *ngIf="user.type === 'user'" [src]="
+                <img *ngIf="user.type === 'user'" [src]="
                     user.avatar
                       ? 'http://localhost:8989/api/v1/users/avatar/get-avatar/' + getFilenameFromUrl(user.avatar)
                       : 'path/to/default-avatar.png'
                   " alt="{{ user.userName }}" class="avatar-sm img-fluid rounded-circle "
-                style="border: none; object-fit: cover" />
-              <img *ngIf="user.type === 'group'" [src]="
+                  style="border: none; object-fit: cover" />
+                <img *ngIf="user.type === 'group'" [src]="
                     user.avatar
                       ? 'http://localhost:8990/api/v1/groups/get-group-avatar/' + getFilenameFromUrl(user.avatar)
                       : 'path/to/default-avatar.png'
                   " alt="{{ user.userName }}" class="avatar-sm img-fluid rounded-circle "
-                style="border: none; object-fit: cover" />
+                  style="border: none; object-fit: cover" />
+              </div>
+              <span>{{ user.name }}</span>
             </div>
-            <span>{{ user.name }}</span>
-          </div>
-          <div *ngIf="user.type === 'group'" class="d-flex align-items-center">
-            <div class="avatar rounded-circle me-2" style="
+            <div *ngIf="user.type === 'group'" class="d-flex align-items-center">
+              <div class="avatar rounded-circle me-2" style="
                   width: 25px;
                   height: 25px;
                   background-color: #ddd;
                   overflow: hidden;
                   ">
-              <img [src]="
+                <img [src]="
                     user.avatar
                       ? 'http://localhost:8990/api/v1/groups/get-group-avatar/' + getFilenameFromUrl(user.avatar)
                       : 'path/to/default-avatar.png'
                   " alt="{{ user.userName }}" class="avatar-sm img-fluid rounded-circle "
-                style="border: none; object-fit: cover" />
+                  style="border: none; object-fit: cover" />
+              </div>
+              <span>{{ user.name }}</span>
             </div>
-            <span>{{ user.name }}</span>
+            <button *ngIf="user.confirmed" class="btn btn-sm btn-primary ms-auto" (click)="selectChat(user)">Nhắn tin</button>
           </div>
-          <button class="btn btn-sm btn-primary ms-auto" (click)="selectChat(user)">Nhắn tin</button>
+        </div>
+        <div *ngIf="findUserError" class="mt-2 text-danger small">
+          {{ findUserError }}
         </div>
       </div>
-      <div *ngIf="findUserError" class="mt-2 text-danger small">
-        {{ findUserError }}
+      <div class="chats-tabs p-2">
+        <div class="btn-group w-100 btn-group-sm" role="group">
+          <button type="button" class="btn btn-light active">Chat</button>
+          <button type="button" class="btn btn-light">Call</button>
+        </div>
       </div>
-    </div>
-    <div class="chats-tabs p-2">
-      <div class="btn-group w-100 btn-group-sm" role="group">
-        <button type="button" class="btn btn-light active">Chat</button>
-        <button type="button" class="btn btn-light">Call</button>
-      </div>
-    </div>
-    <ul class="chats-list list-unstyled overflow-auto">
-      <li *ngFor="let item of chatList" (click)="selectChat(item)" [class.active]="
+      <ul class="chats-list list-unstyled overflow-auto">
+        <li *ngFor="let item of chatList" (click)="selectChat(item)" [class.active]="
           (selectedFriendId === item.id && item.type === 'user') ||
           (selectedGroupId === item.id && item.type === 'group')
         " class="p-2 border-bottom d-flex align-items-center" style="cursor: pointer">
-        <div class="avatar rounded-circle me-2" style="
+          <div class="avatar rounded-circle me-2" style="
             width: 35px;
             height: 35px;
             background-color: #ddd;
             object-fit: cover;
           ">
-          <img *ngIf="item.type === 'user'" [src]="item.avatarUrl" alt="{{ item.name }}"
-            class="avatar-sm img-fluid rounded-circle" style="border: none; object-fit: cover" />
-          <img *ngIf="item.type === 'group'" [src]="item.avatarUrl" alt="{{ item.name }}"
-            class="avatar-sm img-fluid rounded-circle" style="border: none; object-fit: cover" />
-        </div>
-        <div class="info flex-grow-1">
-          <span class="d-block fw-bold small">{{ item.name }}</span>
-          <p class="text-muted small text-truncate mb-0">
-            <span *ngIf="item.type === 'user'">{{
-              item.lastMessage || "No messages yet"
-              }}</span>
-            <span *ngIf="item.type === 'group'">{{
-              item.lastMessage || "No messages yet"
-              }}</span>
+            <img *ngIf="item.type === 'user'" [src]="item.avatarUrl" alt="{{ item.name }}"
+              class="avatar-sm img-fluid rounded-circle" style="border: none; object-fit: cover" />
+            <img *ngIf="item.type === 'group'" [src]="item.avatarUrl" alt="{{ item.name }}"
+              class="avatar-sm img-fluid rounded-circle" style="border: none; object-fit: cover" />
+          </div>
+          <div class="info flex-grow-1">
+            <span class="d-block fw-bold small">{{ item.name }}</span>
+            <p class="text-muted small text-truncate mb-0">
+              <span *ngIf="item.type === 'user'">{{
+                item.lastMessage || "No messages yet"
+                }}</span>
+              <span *ngIf="item.type === 'group'">{{
+                item.lastMessage || "No messages yet"
+                }}</span>
 
-            <!-- nếu item.contentype == 'file' thì hiển thị tên file -->
-            <!-- <span *ngIf="item.contentType === 'group'">{{
+              <!-- nếu item.contentype == 'file' thì hiển thị tên file -->
+              <!-- <span *ngIf="item.contentType === 'group'">{{
                 "file"
                 }}</span> -->
-          </p>
-          <span *ngIf="item.type === 'group'" class="text-muted small">({{ item.memberCount }} members)</span>
-        </div>
-        <span class="text-muted small ms-auto">{{
-          item.lastActive | date : "shortTime"
-          }}</span>
-      </li>
-    </ul>
-  </section>
+            </p>
+            <span *ngIf="item.type === 'group'" class="text-muted small">({{ item.memberCount }} members)</span>
+          </div>
+          <span class="text-muted small ms-auto">{{
+            item.lastActive | date : "shortTime"
+            }}</span>
+        </li>
+      </ul>
+    </section>
 
-  <section class="chat-area flex-grow-2 d-flex flex-column" [ngClass]="{'full-width': isSidebarHidden}">
-    <div class="chat-area-header p-3 border-bottom d-flex justify-content-between align-items-center">
-      <div class="recipient-info d-flex align-items-center">
-        <div class="avatar rounded-circle me-2" style="
+    <section class="chat-area flex-grow-2 d-flex flex-column" [ngClass]="{'full-width': isSidebarHidden}">
+      <div class="chat-area-header p-3 border-bottom d-flex justify-content-between align-items-center">
+        <div class="recipient-info d-flex align-items-center">
+          <div class="avatar rounded-circle me-2" style="
             width: 35px;
             height: 35px;
             background-color: #ddd;
             object-fit: cover;">
-          <div class="avatar rounded-circle me-2" style="
+            <div class="avatar rounded-circle me-2" style="
               width: 35px;
               height: 35px;
               background-color: #ddd;
               overflow: hidden;
             " *ngIf="selectedFriendId">
-            <img *ngIf="selectedFriendAvatarUrl" [src]="selectedFriendAvatarUrl" alt="{{ selectedFriend?.friendName }}"
-              class="avatar-sm img-fluid rounded-circle" style="border: none; object-fit: cover;" />
-            <!-- <img *ngIf="!selectedFriendAvatarUrl && selectedFriend?.avatar" src="path/to/default/avatar.png"
+              <img *ngIf="selectedFriendAvatarUrl" [src]="selectedFriendAvatarUrl"
+                alt="{{ selectedFriend?.friendName }}" class="avatar-sm img-fluid rounded-circle"
+                style="border: none; object-fit: cover;" />
+              <!-- <img *ngIf="!selectedFriendAvatarUrl && selectedFriend?.avatar" src="path/to/default/avatar.png"
               alt="{{ selectedFriend?.friendName }}" class=" avatar-sm img-fluid rounded-circle" style="border: none" />
             <img *ngIf="!selectedFriend?.avatar && !selectedFriendAvatarUrl" src="path/to/default/avatar.png"
               alt="Default Avatar" class="avatar-sm img-fluid rounded-circle" style="border: none" /> -->
-          </div>
-          <div class="avatar rounded-circle me-2" style="
+            </div>
+            <div class="avatar rounded-circle me-2" style="
               width: 35px;
               height: 35px;
               background-color: #ddd;
               overflow: hidden;
             " *ngIf="selectedGroupId">
-            <img [src]="groupAvatarUrl" alt="{{ selectedFriend?.friendName }}"
-              class="avatar-sm img-fluid rounded-circle" style="border: none; object-fit: cover;" />
+              <img [src]="groupAvatarUrl" alt="{{ selectedFriend?.friendName }}"
+                class="avatar-sm img-fluid rounded-circle" style="border: none; object-fit: cover;" />
+            </div>
           </div>
+          <span class="fw-bold small" *ngIf="selectedFriendId">{{selectedFriend.friendName}}</span>
+          <span class="fw-bold small" *ngIf="selectedGroupId">{{selectedGroupName}}</span>
         </div>
-        <span class="fw-bold small" *ngIf="selectedFriendId">{{selectedFriend.friendName}}</span>
-        <span class="fw-bold small" *ngIf="selectedGroupId">{{selectedGroupName}}</span>
+        <div class="chat-actions">
+          <button *ngIf="selectedFriendId" class="btn btn-sm btn-outline-secondary rounded-circle me-2"
+            (click)="startCall(selectedFriendId)">
+            <i class="bi bi-telephone-fill"></i>
+          </button>
+          <button class="btn btn-sm btn-outline-secondary rounded-circle" (click)="toggleSidebar()">
+            <i class="bi bi-three-dots-vertical"></i>
+          </button>
+        </div>
       </div>
-      <div class="chat-actions">
-        <button *ngIf="selectedFriendId" class="btn btn-sm btn-outline-secondary rounded-circle me-2"
-          (click)="startCall(selectedFriendId)">
-          <i class="bi bi-telephone-fill"></i>
-        </button>
-        <button class="btn btn-sm btn-outline-secondary rounded-circle" (click)="toggleSidebar()">
-          <i class="bi bi-three-dots-vertical"></i>
-        </button>
-      </div>
-    </div>
-    <div #chatContainer class="messages flex-grow-1 overflow-auto p-3">
-      <div *ngFor="let message of messages" class="mb-2 d-flex" [ngClass]="{
+      <div #chatContainer class="messages flex-grow-1 overflow-auto p-3">
+        <div *ngFor="let message of messages" class="mb-2 d-flex" [ngClass]="{
           'justify-content-end': message.senderId === userId,
           'justify-content-start': message.senderId !== userId
         }">
-        <div style="display: flex;">
-          <div *ngIf="message.senderId !== userId && message.type == 'GROUP_CHAT' " class="avatar rounded-circle me-2"
-            style="
+          <div style="display: flex;">
+            <div *ngIf="message.senderId !== userId && message.type == 'GROUP_CHAT' " class="avatar rounded-circle me-2"
+              style="
             width: 25px;
             height: 25px;
             background-color: #ddd;
             overflow: hidden;
             ">
-            <img class="img-fluid rounded-circle" style="border: none; width: 100%; height: 100%;"
-              [src]="'http://localhost:8989/api/v1/users/avatar/get-avatar/' + getFilenameFromUrl(friendMapImage[message.senderId])"
-              alt="Avatar">
-          </div>
-          <div *ngIf="message.senderId !== userId && message.type == 'CHAT' " class="avatar rounded-circle me-2" style="
+              <img class="img-fluid rounded-circle" style="border: none; width: 100%; height: 100%;"
+                [src]="'http://localhost:8989/api/v1/users/avatar/get-avatar/' + getFilenameFromUrl(friendMapImage[message.senderId])"
+                alt="Avatar">
+            </div>
+            <div *ngIf="message.senderId !== userId && message.type == 'CHAT' " class="avatar rounded-circle me-2"
+              style="
             width: 25px;
             height: 25px;
             background-color: #ddd;
             overflow: hidden;
             ">
-            <img class="img-fluid rounded-circle" style="border: none; width: 100%; height: 100%;"
-              [src]="'http://localhost:8989/api/v1/users/avatar/get-avatar/' + getFilenameFromUrl(queueFriendMapImage[message.senderId])"
-              alt="Avatar">
-          </div>
-          <div class="row message-contents">
-            <span class="sender-info small text-muted ms-1 me-1" [ngClass]="{
+              <img class="img-fluid rounded-circle" style="border: none; width: 100%; height: 100%;"
+                [src]="'http://localhost:8989/api/v1/users/avatar/get-avatar/' + getFilenameFromUrl(queueFriendMapImage[message.senderId])"
+                alt="Avatar">
+            </div>
+            <div class="row message-contents">
+              <span class="sender-info small text-muted ms-1 me-1" [ngClass]="{
                 'text-end': message.senderId === userId,
                 'text-start': message.senderId !== userId
               }">
-              {{ message.senderId === userId ? "": friendMap[message.senderId] || message.createdDate }}
-            </span>
+                {{ message.senderId === userId ? "": friendMap[message.senderId] || message.createdDate }}
+              </span>
 
-            <div class="d-flex align-items-center" [ngClass]="{'flex-row': message.senderId === userId}">
-              <!-- Three dots menu -->
-              <div *ngIf="message.senderId === userId" class="dropdown me-2">
-                <button class="btn btn-sm p-0" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown"
-                  aria-expanded="false">
-                  <i class="bi bi-three-dots-vertical" style="opacity: 0.5;"></i>
-                </button>
-                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                  <li style="cursor: pointer;"><a class="dropdown-item" (click)="confirmDeleteMessage(message.id!)">Xoá
-                      tin nhắn</a></li>
-                </ul>
-              </div>
+              <div class="d-flex align-items-center" [ngClass]="{'flex-row': message.senderId === userId}">
+                <!-- Three dots menu -->
+                <div *ngIf="message.senderId === userId" class="dropdown me-2">
+                  <button class="btn btn-sm p-0" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown"
+                    aria-expanded="false">
+                    <i class="bi bi-three-dots-vertical" style="opacity: 0.5;"></i>
+                  </button>
+                  <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <li style="cursor: pointer;"><a class="dropdown-item"
+                        (click)="confirmDeleteMessage(message.id!)">Xoá
+                        tin nhắn</a></li>
+                  </ul>
+                </div>
 
-              <!-- Message content -->
-              <div class="message-content p-2 rounded-pill" [ngClass]="{
+                <!-- Message content -->
+                <div class="message-content p-2 rounded-pill" [ngClass]="{
                   'bg-primary text-white': message.senderId === userId && message.contentType !== 'IMAGE',
                   'bg-light text-dark': message.senderId !== userId && message.contentType !== 'IMAGE'}"
-                style="width: fit-content; display: inline-block; max-width: 100%;">
-                <p class="mb-0 small" *ngIf="message.contentType === 'TEXT'">
-                  {{ message.content }}
-                </p>
-                <img *ngIf="message.contentType === 'IMAGE' && message.fileUrl" [src]="
+                  style="width: fit-content; display: inline-block; max-width: 100%;">
+                  <p class="mb-0 small" *ngIf="message.contentType === 'TEXT'">
+                    {{ message.content }}
+                  </p>
+                  <img *ngIf="message.contentType === 'IMAGE' && message.fileUrl" [src]="
                     'http://localhost:8990/api/v1/file/get-image/' +
                     getFilenameFromUrl(message.fileUrl)" (click)="zoomImage(
                           'http://localhost:8990/api/v1/file/get-image/' + getFilenameFromUrl(message.fileUrl)
@@ -245,219 +263,200 @@
                     background-color: transparent;
                     cursor: pointer;
                   " />
-                <a *ngIf="message.contentType === 'FILE' && message.fileUrl" [href]="
+                  <a *ngIf="message.contentType === 'FILE' && message.fileUrl" [href]="
                     'http://localhost:8990/api/v1/file/download/' +
                     getFilenameFromUrl(message.fileUrl)
                   " target="_blank" class="text-decoration-none">
-                  <button class="btn btn-sm rounded-pill" [ngClass]="{
+                    <button class="btn btn-sm rounded-pill" [ngClass]="{
                     'btn-light text-dark': message.senderId !== userId,
                     'btn-white text-white': message.senderId === userId
                   }">
-                    <i class="bi bi-file-earmark-fill me-1"></i> {{getOriginFilenameFromUrl(message.fileUrl)}}
-                  </button>
-                </a>
+                      <i class="bi bi-file-earmark-fill me-1"></i> {{getOriginFilenameFromUrl(message.fileUrl)}}
+                    </button>
+                  </a>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-    <div class="message-input-area p-3 border-top">
-      <div class="d-flex flex-column">
-        <div *ngIf="isFilePending && selectedFile" class="pending-file mb-2 d-flex align-items-center">
-          <div *ngIf="selectedImageUrl" class="image-preview me-2"
-            style="max-width: 50px; max-height: 50px; overflow: hidden;">
-            <img [src]="selectedImageUrl" alt="Preview" style="width: 100%; height: auto;">
+      <div class="message-input-area p-3 border-top">
+        <div class="d-flex flex-column">
+          <div *ngIf="isFilePending && selectedFile" class="pending-file mb-2 d-flex align-items-center">
+            <div *ngIf="selectedImageUrl" class="image-preview me-2"
+              style="max-width: 50px; max-height: 50px; overflow: hidden;">
+              <img [src]="selectedImageUrl" alt="Preview" style="width: 100%; height: auto;">
+            </div>
+            <div *ngIf="!selectedImageUrl" class="file-info me-2">
+              <i class="bi bi-file-earmark-fill me-1"></i> {{ selectedFile.name }}
+            </div>
+            <button class="btn btn-sm btn-outline-danger rounded-circle" (click)="cancelPendingFile()">
+              <i class="bi bi-x-lg"></i>
+            </button>
           </div>
-          <div *ngIf="!selectedImageUrl" class="file-info me-2">
-            <i class="bi bi-file-earmark-fill me-1"></i> {{ selectedFile.name }}
-          </div>
-          <button class="btn btn-sm btn-outline-danger rounded-circle" (click)="cancelPendingFile()">
-            <i class="bi bi-x-lg"></i>
-          </button>
-        </div>
 
-        <div class="d-flex align-items-center">
-          <div class="input-actions me-2">
-            <button class="btn btn-sm btn-light rounded-circle me-1">
-              <i class="bi bi-plus"></i>
-            </button>
-            <input type="file" (change)="onFileSelected($event)" style="display: none" #fileInput />
-            <button class="btn btn-sm btn-light rounded-circle me-1" (click)="fileInput.click()">
-              <i class="bi bi-paperclip"></i>
-            </button>
-            <input type="file" accept="image/*" (change)="onImageSelected($event)" style="display: none" #imageInput />
-            <button class="btn btn-sm btn-light rounded-circle me-1" (click)="imageInput.click()">
-              <i class="bi bi-image-fill"></i>
-            </button>
-            <button class="btn btn-sm btn-light rounded-circle">
-              <i class="bi bi-emoji-smile-fill"></i>
-            </button>
-          </div>
-          <div class="input-field flex-grow-1 me-2">
-            <input type="text" class="form-control form-control-sm rounded-pill" [(ngModel)]="messageInput"
-              placeholder="Viết tin nhắn..." (keyup.enter)="sendMessage()" />
-          </div>
-          <div class="send-button">
-            <button class="btn btn-primary btn-sm rounded-pill" (click)="sendMessage()">
-              <i class="bi bi-send-fill"></i>
-            </button>
+          <div class="d-flex align-items-center">
+            <div class="input-actions me-2">
+              <button class="btn btn-sm btn-light rounded-circle me-1">
+                <i class="bi bi-plus"></i>
+              </button>
+              <input type="file" (change)="onFileSelected($event)" style="display: none" #fileInput />
+              <button class="btn btn-sm btn-light rounded-circle me-1" (click)="fileInput.click()">
+                <i class="bi bi-paperclip"></i>
+              </button>
+              <input type="file" accept="image/*" (change)="onImageSelected($event)" style="display: none"
+                #imageInput />
+              <button class="btn btn-sm btn-light rounded-circle me-1" (click)="imageInput.click()">
+                <i class="bi bi-image-fill"></i>
+              </button>
+              <button class="btn btn-sm btn-light rounded-circle">
+                <i class="bi bi-emoji-smile-fill"></i>
+              </button>
+            </div>
+            <div class="input-field flex-grow-1 me-2">
+              <input type="text" class="form-control form-control-sm rounded-pill" [(ngModel)]="messageInput"
+                placeholder="Viết tin nhắn..." (keyup.enter)="sendMessage()" />
+            </div>
+            <div class="send-button">
+              <button class="btn btn-primary btn-sm rounded-pill" (click)="sendMessage()">
+                <i class="bi bi-send-fill"></i>
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
 
-  <aside class="right-sidebar bg-light border-start p-3" style="width: 350px" *ngIf="!isSidebarHidden">
-    <div *ngIf="selectedGroupId" class="profile-info mb-3 d-flex flex-column align-items-center position-relative">
-      <div class="position-relative">
-        <img [src]="groupAvatarUrl || 'https://via.placeholder.com/50'" alt="{{ selectedGroupName }}"
-          class="img-fluid rounded-circle" style="width: 80px; height: 80px; border: none; object-fit: cover;" />
-        <ng-container *ngIf="isEditingGroupAvatar; else viewGroupAvatarUpload">
-          <div class="d-flex align-items-center mt-2">
-            <input type="file" class="form-control form-control-sm" accept="image/png, image/jpeg, image/gif"
-              (change)="onAvatarSelected($event)" #groupAvatarInputRef />
-          </div>
-          <button class="btn btn-sm btn-secondary mt-2" (click)="clearAvatarSelection()">
-            <i class="bi bi-x"></i> Hủy
-          </button>
-          <button *ngIf="groupAvatarFile" class="btn btn-sm btn-primary mt-2" (click)="uploadGroupAvatar()">
-            <i class="bi bi-upload"></i> Tải lên
-          </button>
-        </ng-container>
-        <ng-template #viewGroupAvatarUpload>
-          <div
-            class="position-absolute bottom-0 end-0 bg-success rounded-circle d-flex justify-content-center align-items-center"
-            style="width: 24px; height: 24px; cursor: pointer;" (click)="isEditingGroupAvatar = true">
-            <i class="bi bi-pencil-fill text-white small"></i>
-          </div>
-        </ng-template>
+    <aside class="right-sidebar bg-light border-start p-3" style="width: 350px" *ngIf="!isSidebarHidden">
+      <div *ngIf="selectedGroupId" class="profile-info mb-3 d-flex flex-column align-items-center position-relative">
+        <div class="position-relative">
+          <img [src]="groupAvatarUrl || 'https://via.placeholder.com/50'" alt="{{ selectedGroupName }}"
+            class="img-fluid rounded-circle" style="width: 80px; height: 80px; border: none; object-fit: cover;" />
+          <ng-container *ngIf="isEditingGroupAvatar; else viewGroupAvatarUpload">
+            <div class="d-flex align-items-center mt-2">
+              <input type="file" class="form-control form-control-sm" accept="image/png, image/jpeg, image/gif"
+                (change)="onAvatarSelected($event)" #groupAvatarInputRef />
+            </div>
+            <button class="btn btn-sm btn-secondary mt-2" (click)="clearAvatarSelection()">
+              <i class="bi bi-x"></i> Hủy
+            </button>
+            <button *ngIf="groupAvatarFile" class="btn btn-sm btn-primary mt-2" (click)="uploadGroupAvatar()">
+              <i class="bi bi-upload"></i> Tải lên
+            </button>
+          </ng-container>
+          <ng-template #viewGroupAvatarUpload>
+            <div
+              class="position-absolute bottom-0 end-0 bg-success rounded-circle d-flex justify-content-center align-items-center"
+              style="width: 24px; height: 24px; cursor: pointer;" (click)="isEditingGroupAvatar = true">
+              <i class="bi bi-pencil-fill text-white small"></i>
+            </div>
+          </ng-template>
+        </div>
+        <h3 class="h6 mt-2 mb-0 text-center">{{ selectedGroupName }}</h3>
       </div>
-      <h3 class="h6 mt-2 mb-0 text-center">{{ selectedGroupName }}</h3>
-    </div>
 
 
 
-    <div *ngIf="selectedFriendId" class="profile-info mb-3 d-flex flex-column align-items-center">
-      <div class="avatar rounded-circle" style="
+      <div *ngIf="selectedFriendId" class="profile-info mb-3 d-flex flex-column align-items-center">
+        <div class="avatar rounded-circle" style="
           width: 80px; height: 80px; border: none; object-fit: cover;
         ">
-        <img *ngIf="selectedFriendAvatarUrl" [src]="selectedFriendAvatarUrl" alt="{{ selectedFriend?.friendName }}"
-          class="img-fluid rounded-circle" style="border: none" />
-        <img *ngIf="!selectedFriendAvatarUrl && selectedFriend?.avatar" src="path/to/default/avatar.png"
-          alt="{{ selectedFriend?.friendName }}" class="img-fluid rounded-circle" style="border: none" />
-        <img *ngIf="!selectedFriend?.avatar && !selectedFriendAvatarUrl" src="path/to/default/avatar.png"
-          alt="Default Avatar" class="img-fluid rounded-circle" style="border: none" />
-      </div>
-      <h3 class="h6 mt-2 mb-0">{{ selectedFriend?.friendName }}</h3>
-    </div>
-
-    <!-- <div class="settings mb-3">
-      <div class="setting-item d-flex justify-content-between align-items-center mb-2 small">
-        <span>Thông báo</span>
-        <div class="form-check form-switch">
-          <input class="form-check-input form-check-input-sm" type="checkbox" role="switch" />
+          <img *ngIf="selectedFriendAvatarUrl" [src]="selectedFriendAvatarUrl" alt="{{ selectedFriend?.friendName }}"
+            class="img-fluid rounded-circle" style="border: none" />
+          <img *ngIf="!selectedFriendAvatarUrl && selectedFriend?.avatar" src="path/to/default/avatar.png"
+            alt="{{ selectedFriend?.friendName }}" class="img-fluid rounded-circle" style="border: none" />
+          <img *ngIf="!selectedFriend?.avatar && !selectedFriendAvatarUrl" src="path/to/default/avatar.png"
+            alt="Default Avatar" class="img-fluid rounded-circle" style="border: none" />
         </div>
+        <h3 class="h6 mt-2 mb-0">{{ selectedFriend?.friendName }}</h3>
       </div>
-      <div class="setting-item d-flex justify-content-between align-items-center mb-2 small">
-        <span>Âm thanh</span>
-        <div class="form-check form-switch">
-          <input class="form-check-input form-check-input-sm" type="checkbox" role="switch" />
+      <div class="members" *ngIf="selectedGroupId">
+        <div class="members-header d-flex justify-content-between align-items-center mb-2 small">
+          <span class="fw-bold">Thành viên</span>
+          <button class="btn btn-sm btn-outline-secondary" (click)="openAddMemberModal()">
+            Thêm thành viên
+          </button>
         </div>
-      </div>
-      <div class="setting-item d-flex justify-content-between align-items-center mb-2 small">
-        <span>Lưu vào tải xuống</span>
-        <div class="form-check form-switch">
-          <input class="form-check-input form-check-input-sm" type="checkbox" role="switch" />
-        </div>
-      </div>
-    </div> -->
-
-    <div class="members" *ngIf="selectedGroupId">
-      <div class="members-header d-flex justify-content-between align-items-center mb-2 small">
-        <span class="fw-bold">Thành viên</span>
-        <button class="btn btn-sm btn-outline-secondary" (click)="openAddMemberModal()">
-          Thêm thành viên
-        </button>
-      </div>
-      <div *ngIf="groupMembers.length > 0" class="members-list overflow-auto" style="max-height: 200px">
-        <div *ngFor="let member of groupMembers" class="member-item d-flex align-items-center mb-2 small clickable"
-          (click)="openFriendInfoModal(member.id)">
-          <div class="avatar rounded-circle me-2" style="
+        <div *ngIf="groupMembers.length > 0" class="members-list overflow-auto" style="max-height: 200px">
+          <div *ngFor="let member of groupMembers" class="member-item d-flex align-items-center mb-2 small clickable"
+            (click)="openFriendInfoModal(member.id)">
+            <div class="avatar rounded-circle me-2" style="
                 width: 25px;
                 height: 25px;
                 background-color: #ddd;
                 overflow: hidden;
               ">
-            <img [src]="
+              <img [src]="
                   member.avatar
                     ? 'http://localhost:8989/api/v1/users/avatar/get-avatar/' + getFilenameFromUrl(member.avatar)
                     : 'path/to/default-avatar.png'
                 " alt="{{ member.userName }}" class="img-fluid rounded-circle" style="border: none" />
+            </div>
+            <span>{{ member.userName }}</span>
           </div>
-          <span>{{ member.userName }}</span>
         </div>
       </div>
-    </div>
 
-    <div class="members" *ngIf="selectedFriendId"></div>
+      <div class="members" *ngIf="selectedFriendId"></div>
 
-    <hr>
+      <hr>
 
-    <div class="media-links mt-3">
-      <div class="d-flex justify-content-around small">
-        <button class="btn btn-sm btn-light choose-file-btn" [class.selected-tab]="showMediaSection"
-          (click)="showMedia()">Ảnh</button>
-        <button class="btn btn-sm btn-light choose-file-btn" [class.selected-tab]="showDocsSection"
-          (click)="showDocs()">Files</button>
-      </div>
+      <div class="media-links mt-3">
+        <div class="d-flex justify-content-around small">
+          <button class="btn btn-sm btn-light choose-file-btn" [class.selected-tab]="showMediaSection"
+            (click)="showMedia()">Ảnh</button>
+          <button class="btn btn-sm btn-light choose-file-btn" [class.selected-tab]="showDocsSection"
+            (click)="showDocs()">Files</button>
+        </div>
 
-      <div *ngIf="showMediaSection" class="media-section mt-2">
-        <div class="image-gallery">
-          <div *ngFor="let image of imageList" class="image-item">
-            <img [src]="'http://localhost:8990/api/v1/file/get-image/' + getFilenameFromUrl(image.fileUrl)"
-              alt="Ảnh chat" (click)="zoomImage(
+        <div *ngIf="showMediaSection" class="media-section mt-2">
+          <div class="image-gallery">
+            <div *ngFor="let image of imageList" class="image-item">
+              <img [src]="'http://localhost:8990/api/v1/file/get-image/' + getFilenameFromUrl(image.fileUrl)"
+                alt="Ảnh chat" (click)="zoomImage(
             'http://localhost:8990/api/v1/file/get-image/' + getFilenameFromUrl(image.fileUrl)
           )" style="max-width: 150px; height: auto; margin: 5px; border: 1px solid #ccc; border-radius: 5px;">
-          </div>
-          <div *ngIf="imageList.length === 0" class="text-muted small">
-            Không có ảnh nào trong cuộc trò chuyện này.
+            </div>
+            <div *ngIf="imageList.length === 0" class="text-muted small">
+              Không có ảnh nào trong cuộc trò chuyện này.
+            </div>
           </div>
         </div>
+        <div *ngIf="showDocsSection" class="docs-section mt-2">
+          <ul class="list-unstyled doc-gallery">
+            <li *ngFor="let doc of docList" class="doc-item p-2 border-bottom small">
+              <i class="bi bi-file-earmark-fill me-2"></i>
+              <a [href]="'http://localhost:8990/api/v1/file/download/' + getFilenameFromUrl(doc.fileUrl)"
+                target="_blank" class="text-decoration-none text-dark">{{ getOriginFilenameFromUrl(doc.fileUrl) }}</a>
+            </li>
+            <li *ngIf="docList.length === 0" class="text-muted small">
+              Không có tài liệu nào trong cuộc trò chuyện này.
+            </li>
+          </ul>
+        </div>
       </div>
-      <div *ngIf="showDocsSection" class="docs-section mt-2">
-        <ul class="list-unstyled doc-gallery">
-          <li *ngFor="let doc of docList" class="doc-item p-2 border-bottom small">
-            <i class="bi bi-file-earmark-fill me-2"></i>
-            <a [href]="'http://localhost:8990/api/v1/file/download/' + getFilenameFromUrl(doc.fileUrl)" target="_blank"
-              class="text-decoration-none text-dark">{{ getOriginFilenameFromUrl(doc.fileUrl) }}</a>
-          </li>
-          <li *ngIf="docList.length === 0" class="text-muted small">
-            Không có tài liệu nào trong cuộc trò chuyện này.
-          </li>
-        </ul>
-      </div>
+    </aside>
+
+    <audio #remoteAudio autoplay></audio>
+
+    <div *ngIf="isCalling" class="call-overlay bg-secondary text-white p-3 rounded small">
+      Đang gọi với {{ friendMap[callInProgressWith!] || callInProgressWith }}...
+      <button (click)="stopCall()" class="btn btn-danger btn-sm ms-2">
+        Kết thúc
+      </button>
     </div>
-  </aside>
 
-  <audio #remoteAudio autoplay></audio>
+    <div *ngIf="isIncomingCall" class="incoming-call-overlay bg-success text-white p-3 rounded small">
+      Cuộc gọi đến từ {{ incomingCallerName }}
+      <button (click)="acceptCall()" class="btn btn-primary btn-sm me-2">
+        Chấp nhận
+      </button>
+      <button (click)="rejectCall()" class="btn btn-danger btn-sm">
+        Từ chối
+      </button>
+    </div>
 
-  <div *ngIf="isCalling" class="call-overlay bg-secondary text-white p-3 rounded small">
-    Đang gọi với {{ friendMap[callInProgressWith!] || callInProgressWith }}...
-    <button (click)="stopCall()" class="btn btn-danger btn-sm ms-2">
-      Kết thúc
-    </button>
-  </div>
-
-  <div *ngIf="isIncomingCall" class="incoming-call-overlay bg-success text-white p-3 rounded small">
-    Cuộc gọi đến từ {{ incomingCallerName }}
-    <button (click)="acceptCall()" class="btn btn-primary btn-sm me-2">
-      Chấp nhận
-    </button>
-    <button (click)="rejectCall()" class="btn btn-danger btn-sm">
-      Từ chối
-    </button>
   </div>
 </div>
 

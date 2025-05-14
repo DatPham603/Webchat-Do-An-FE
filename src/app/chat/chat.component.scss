@@ -246,3 +246,8 @@
 .call-overlay button {
   margin-top: 10px;
 }
+
+input:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
