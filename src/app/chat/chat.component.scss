@@ -227,3 +227,22 @@
   --bs-gutter-x: 0;
 }
 
+.call-overlay {
+  position: fixed; /* Để phần tử cố định trên màn hình */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* Dịch chuyển để căn giữa chính xác */
+  z-index: 1000; /* Đảm bảo nó hiển thị trên các phần tử khác */
+  /* Các thuộc tính tạo kiểu khác */
+  background-color: rgba(0, 0, 0, 0.8); /* Màu nền mờ */
+  color: white;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Hiệu ứng đổ bóng */
+  min-width: 200px; /* Độ rộng tối thiểu */
+  text-align: center; /* Căn chữ ở giữa */
+}
+
+.call-overlay button {
+  margin-top: 10px;
+}

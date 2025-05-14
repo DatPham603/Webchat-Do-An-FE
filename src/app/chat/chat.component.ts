@@ -91,6 +91,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   private subscriptions: any[] = [];
   messageIdToDelete: string | null = null;
   isSidebarHidden: boolean = false;
+  foundUsersByNameList: any[] = [];
   private groupSubscriptions: { [groupId: string]: any[] } = {};
 
   @ViewChild('localVideo') localVideo: ElementRef<HTMLVideoElement> | undefined;
@@ -531,9 +532,9 @@ subscribeToAllGroups() {
   // Lấy danh sách tất cả các nhóm từ chatList
   const groups = this.chatList.filter(item => item.type === 'group');
   groups.forEach(group => {
-    console.log("tất cả group được subcribe")
     this.subscribeToGroupUpdates(group.id);
   });
+  console.log("tất cả group được subcribe")
 }
 
 // Đăng ký chỉ để cập nhật sidebar cho một nhóm
@@ -801,7 +802,6 @@ subscribeToGroupUpdates(groupId: string) {
   }
 
   // auto cuộn xuống dưới khi có tin nhắn mới
-
   scrollToBottom(): void {
     try {
       this.chatContainer.nativeElement.scrollTop = this.chatContainer.nativeElement.scrollHeight;
@@ -863,7 +863,6 @@ subscribeToGroupUpdates(groupId: string) {
       this.loadGroupChatHistory(item.id);
       setTimeout(() => this.scrollToBottom(), 80);
       this.loadGroupMembers(item.id)
-      console.log(item.id)
       this.loadImageGroupChatHistory(item.id)
       this.showMediaSection = true;
       this.loadFileGroupChatHistory(item.id);
@@ -979,6 +978,7 @@ subscribeToGroupUpdates(groupId: string) {
           return { ...item, avatarUrl: 'path/to/default/avatar.png' };
         }
       }));
+      console.log("item day" + response.data + userId)
       this.subscribeToAllGroups();
 
       this.chatList.forEach(
@@ -993,15 +993,40 @@ subscribeToGroupUpdates(groupId: string) {
     }
   }
 
+
+  filterUsers(): void {
+    this.foundUserToAdd = null;
+    this.findUserError = '';
+    this.foundUsersByNameList = [];
+
+    const searchTerm = this.searchTerm ? this.searchTerm.trim() : '';
+
+    if (!searchTerm) {
+      return;
+    }
+
+    const searchTermLower = searchTerm.toLowerCase();
+
+    const foundUsers = this.chatList.filter(item =>
+      (item.name.toLowerCase().includes(searchTermLower) ||
+        (item.email && item.email.toLowerCase().includes(searchTermLower)))
+    );
+
+    if (foundUsers.length > 0) {
+      this.foundUsersByNameList = foundUsers;
+      this.foundUserToAdd = null;
+      this.findUserError = '';
+    } else {
+      this.findUserError = 'Không tìm thấy người dùng.';
+    }
+  }
+
   getAvatarUrlForChatListItem(filename: string): string {
     return `http://localhost:8989/api/v1/users/avatar/get-avatar/${this.getFilenameFromUrl(filename)}`;
   }
 
 
-
-  // Giả sử bạn có một hàm để lấy userId ở frontend
   getLoggedInUserId(): string | null {
-    // Logic để lấy userId từ local storage, state, v.v.
     return localStorage.getItem('userId'); // Ví dụ
   }
 
@@ -1170,7 +1195,6 @@ subscribeToGroupUpdates(groupId: string) {
     return null;
   }
 
-  // cập nhật sidebar trái (danh sách chat list)
   updateChatListItem(newMessage: ChatMessage) {
     const receiverOrGroupId = newMessage.type === 'CHAT' ?
       newMessage.senderId === this.userId ? newMessage.receiverId : newMessage.senderId :
@@ -1179,6 +1203,7 @@ subscribeToGroupUpdates(groupId: string) {
     const index = this.chatList.findIndex(item => item.id === receiverOrGroupId);
     if (index !== -1) {
       this.chatList[index] = { ...this.chatList[index], lastMessage: newMessage.content };
+      this.chatList[index] = { ...this.chatList[index], lastActive: newMessage.createdDate };
       const updatedItem = this.chatList.splice(index, 1)[0];
       this.chatList.unshift(updatedItem);
     } else {

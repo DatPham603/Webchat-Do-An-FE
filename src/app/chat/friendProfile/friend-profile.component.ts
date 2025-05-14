@@ -39,7 +39,7 @@ export class FriendProfileComponent implements OnInit, OnDestroy {
       if (idFromRoute) {
         this.userId = idFromRoute;
         this.fetchFriendDataAsync(this.userId);
-      } else if (this.userId) { // Nếu userId được truyền trực tiếp (từ modal)
+      } else if (this.userId) { 
         this.fetchFriendDataAsync(this.userId);
       } else {
         console.error('Không có ID người bạn.');

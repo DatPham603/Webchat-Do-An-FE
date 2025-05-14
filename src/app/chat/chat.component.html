@@ -2,8 +2,8 @@
   <aside class="left-sidebar bg-light d-flex flex-column align-items-center p-3" style="width: 80px">
     <div class="user-profile mb-3">
       <img [src]="avatarUrl || 'https://via.placeholder.com/100'" alt="Avatar" style="
-          width: 80px;
-          height: 80px;
+          width: 60px;
+          height: 60px;
           border-radius: 50%;
           object-fit: cover;
           margin-right: 10px;
@@ -33,34 +33,56 @@
     </div>
     <div class="search-bar p-3">
       <div class="input-group">
-        <input type="text" class="form-control form-control-sm"
-          placeholder="Tìm kiếm người dùng theo email/số điện thoại" [(ngModel)]="searchTerm"
-          (keyup.enter)="findUserByEmailOrPhoneNumber()" />
-        <button class="btn btn-outline-secondary btn-sm" type="button" (click)="findUserByEmailOrPhoneNumber()">
+        <input type="text" class="form-control form-control-sm" placeholder="Lọc theo tên/email hoặc nhóm"
+          [(ngModel)]="searchTerm" (keyup.enter)="filterUsers()" />
+        <button class="btn btn-outline-secondary btn-sm" type="button" (click)="filterUsers()">
           <i class="bi bi-search"></i>
         </button>
       </div>
-      <div *ngIf="foundUserToAdd" class="mt-2 small d-flex align-items-center justify-content-between">
-        <div class="member-item d-flex align-items-center mb-2 small clickable"
-          (click)="openFriendInfoModal(foundUserToAdd.id)">
-          <div class="avatar rounded-circle me-2" style="
-            width: 25px;
-            height: 25px;
-            background-color: #ddd;
-            overflow: hidden;
-            ">
-            <img [src]="
-              foundUserToAdd.avatar
-                ? 'http://localhost:8989/api/v1/users/avatar/get-avatar/' + getFilenameFromUrl(foundUserToAdd.avatar)
-                : 'path/to/default-avatar.png'
-            " alt="{{ foundUserToAdd.userName }}" class="avatar-sm img-fluid rounded-circle "
-              style="border: none; object-fit: cover" />
+
+      <div *ngIf="foundUsersByNameList && foundUsersByNameList.length > 0" class="mt-2 small">
+        <div *ngFor="let user of foundUsersByNameList" class="member-item d-flex align-items-center mb-2 small">
+          <div class="d-flex align-items-center clickable" *ngIf="user.type === 'user'"
+            (click)="openFriendInfoModal(user.id)" [style.cursor]="'pointer'">
+            <div class="avatar rounded-circle me-2" style="
+                  width: 25px;
+                  height: 25px;
+                  background-color: #ddd;
+                  overflow: hidden;
+                  ">
+              <img *ngIf="user.type === 'user'" [src]="
+                    user.avatar
+                      ? 'http://localhost:8989/api/v1/users/avatar/get-avatar/' + getFilenameFromUrl(user.avatar)
+                      : 'path/to/default-avatar.png'
+                  " alt="{{ user.userName }}" class="avatar-sm img-fluid rounded-circle "
+                style="border: none; object-fit: cover" />
+              <img *ngIf="user.type === 'group'" [src]="
+                    user.avatar
+                      ? 'http://localhost:8990/api/v1/groups/get-group-avatar/' + getFilenameFromUrl(user.avatar)
+                      : 'path/to/default-avatar.png'
+                  " alt="{{ user.userName }}" class="avatar-sm img-fluid rounded-circle "
+                style="border: none; object-fit: cover" />
+            </div>
+            <span>{{ user.name }}</span>
           </div>
-          <span>{{ foundUserToAdd.userName }}</span>
+          <div *ngIf="user.type === 'group'" class="d-flex align-items-center">
+            <div class="avatar rounded-circle me-2" style="
+                  width: 25px;
+                  height: 25px;
+                  background-color: #ddd;
+                  overflow: hidden;
+                  ">
+              <img [src]="
+                    user.avatar
+                      ? 'http://localhost:8990/api/v1/groups/get-group-avatar/' + getFilenameFromUrl(user.avatar)
+                      : 'path/to/default-avatar.png'
+                  " alt="{{ user.userName }}" class="avatar-sm img-fluid rounded-circle "
+                style="border: none; object-fit: cover" />
+            </div>
+            <span>{{ user.name }}</span>
+          </div>
+          <button class="btn btn-sm btn-primary ms-auto" (click)="selectChat(user)">Nhắn tin</button>
         </div>
-        <button class="btn btn-sm btn-primary ms-2" (click)="sendFriendRequest(foundUserToAdd.id)">Kết bạn</button> 
-        <!-- gửi lời mời kết bạn, nếu đã là bạn bè thì không cần, nếu chưa thì cần kết bạn, bên kia nhận được yêu cầu, cần API danh sách lời mời kết bạn, acp -->
-        <!-- thêm sự kiện click vào đây để kết bạn -->
       </div>
       <div *ngIf="findUserError" class="mt-2 text-danger small">
         {{ findUserError }}
@@ -125,20 +147,20 @@
               height: 35px;
               background-color: #ddd;
               overflow: hidden;
-            "*ngIf="selectedFriendId">
+            " *ngIf="selectedFriendId">
             <img *ngIf="selectedFriendAvatarUrl" [src]="selectedFriendAvatarUrl" alt="{{ selectedFriend?.friendName }}"
               class="avatar-sm img-fluid rounded-circle" style="border: none; object-fit: cover;" />
-            <img *ngIf="!selectedFriendAvatarUrl && selectedFriend?.avatar" src="path/to/default/avatar.png"
+            <!-- <img *ngIf="!selectedFriendAvatarUrl && selectedFriend?.avatar" src="path/to/default/avatar.png"
               alt="{{ selectedFriend?.friendName }}" class=" avatar-sm img-fluid rounded-circle" style="border: none" />
             <img *ngIf="!selectedFriend?.avatar && !selectedFriendAvatarUrl" src="path/to/default/avatar.png"
-              alt="Default Avatar" class="avatar-sm img-fluid rounded-circle" style="border: none" />
+              alt="Default Avatar" class="avatar-sm img-fluid rounded-circle" style="border: none" /> -->
           </div>
           <div class="avatar rounded-circle me-2" style="
               width: 35px;
               height: 35px;
               background-color: #ddd;
               overflow: hidden;
-            "*ngIf="selectedGroupId">
+            " *ngIf="selectedGroupId">
             <img [src]="groupAvatarUrl" alt="{{ selectedFriend?.friendName }}"
               class="avatar-sm img-fluid rounded-circle" style="border: none; object-fit: cover;" />
           </div>
@@ -191,7 +213,6 @@
               {{ message.senderId === userId ? "": friendMap[message.senderId] || message.createdDate }}
             </span>
 
-            <!-- Container to hold message and dropdown in same line -->
             <div class="d-flex align-items-center" [ngClass]="{'flex-row': message.senderId === userId}">
               <!-- Three dots menu -->
               <div *ngIf="message.senderId === userId" class="dropdown me-2">
@@ -200,7 +221,8 @@
                   <i class="bi bi-three-dots-vertical" style="opacity: 0.5;"></i>
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                  <li style="cursor: pointer;"><a class="dropdown-item" (click)="confirmDeleteMessage(message.id!)">Xoá tin nhắn</a></li>
+                  <li style="cursor: pointer;"><a class="dropdown-item" (click)="confirmDeleteMessage(message.id!)">Xoá
+                      tin nhắn</a></li>
                 </ul>
               </div>
 
@@ -331,7 +353,7 @@
       <h3 class="h6 mt-2 mb-0">{{ selectedFriend?.friendName }}</h3>
     </div>
 
-    <div class="settings mb-3">
+    <!-- <div class="settings mb-3">
       <div class="setting-item d-flex justify-content-between align-items-center mb-2 small">
         <span>Thông báo</span>
         <div class="form-check form-switch">
@@ -350,7 +372,7 @@
           <input class="form-check-input form-check-input-sm" type="checkbox" role="switch" />
         </div>
       </div>
-    </div>
+    </div> -->
 
     <div class="members" *ngIf="selectedGroupId">
       <div class="members-header d-flex justify-content-between align-items-center mb-2 small">
@@ -517,19 +539,19 @@
 
 <div *ngIf="showConfirmationModal" class="modal fade show" style="display: block; background-color: rgba(0, 0, 0, 0.5)">
   <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-          <div class="modal-header">
-              <h5 class="modal-title">Xác nhận xóa</h5>
-              <button type="button" class="btn-close" (click)="deleteCancelled()"></button>
-          </div>
-          <div class="modal-body">
-              <p>Bạn có chắc chắn muốn xóa tin nhắn này?</p>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-danger me-2" (click)="deleteConfirmed()">Xóa</button>
-            <button type="button" class="btn btn-secondary" (click)="deleteCancelled()">Hủy</button>
-          </div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Xác nhận xóa</h5>
+        <button type="button" class="btn-close" (click)="deleteCancelled()"></button>
       </div>
+      <div class="modal-body">
+        <p>Bạn có chắc chắn muốn xóa tin nhắn này?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger me-2" (click)="deleteConfirmed()">Xóa</button>
+        <button type="button" class="btn btn-secondary" (click)="deleteCancelled()">Hủy</button>
+      </div>
+    </div>
   </div>
 </div>
 
