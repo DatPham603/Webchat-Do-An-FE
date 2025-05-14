@@ -19,6 +19,36 @@
     </div>
   </div>
 
+  <!-- <div class="flex-grow-1 d-flex justify-content-center">
+  <div class="search-container" style="width: 800px; position: relative;">
+    <div class="input-group">
+      <span class="input-group-text bg-transparent border-end-0">
+        <i class="bi bi-search"></i>
+      </span>
+      <input
+        type="text"
+        class="form-control form-control-sm"
+        style="max-width: 800px"
+        placeholder="Tìm kiếm người dùng theo email"
+        [(ngModel)]="searchTerm"
+        (input)="searchUsers()"
+      />
+    </div>
+    <div *ngIf="searchResults && searchResults.length > 0" class="search-suggestions shadow rounded" style="position: absolute; top: 100%; left: 0; right: 0; background-color: white; border: 1px solid #ccc; z-index: 1000;">
+      <a *ngFor="let user of searchResults" class="dropdown-item p-2" style="cursor: pointer; display: flex; align-items: center;" (click)="selectUser(user)">
+        <div class="avatar rounded-circle me-2" style="width: 24px; height: 24px; overflow: hidden;">
+          <img *ngIf="user.avatar" [src]="'http://localhost:8989/api/v1/users/avatar/get-avatar/' + getFilenameFromUrl(user.avatar)" alt="{{ user.userName }}" class="img-fluid rounded-circle" style="border: none; object-fit: cover;">
+          <div *ngIf="!user.avatar" class="bg-secondary rounded-circle d-flex justify-content-center align-items-center text-white small" style="width: 24px; height: 24px;">
+            {{ user.userName.substring(0, 1).toUpperCase() }}
+          </div>
+        </div>
+        <span>{{ user.userName }}</span>
+        <span class="text-muted ms-1 small">({{ user.email }})</span>
+      </a>
+    </div>
+  </div>
+</div> -->
+
   <div style="width: 60px;"></div>
 </div>
 
