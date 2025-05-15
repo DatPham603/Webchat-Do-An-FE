@@ -38,17 +38,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   email: string | null = null;
   friends: any[] = [];
   chatList: (ChatListItem & { avatarUrl?: SafeUrl | string })[] = [];
-  chatListItems: ChatListItem[] = []; 
-  // MAP SANG VÍ DỤ backendData.data.map(mapUserToChatListItem);
-//   VÍ DỤ mapUserToChatListItem(userData: any): ChatListItem {
-//   return {
-//     type: 'user',
-//     id: userData.id,
-//     name: userData.userName,
-//     email: userData.email,
-//     avatarUrl: userData.avatar ? `http://localhost:8989/api/v1/users/avatar/get-avatar/${userData.avatar.split('/').pop()}` : null,
-//   };
-// } => CÓ CHATLISTITEM => FILTER THÔI 
+  chatListItems: ChatListItem[] = [];
   selectedFriend: any | null = null;
   messages: ChatMessage[] = [];
   groupMessages: ChatMessage[] = [];
@@ -75,13 +65,15 @@ export class ChatComponent implements OnInit, OnDestroy {
   groupAvatarFile: File | null = null;
   searchEmail: string = '';
   searchTerm: string = '';
+  searchTermForSearchAll: string = '';
   foundUser: any | null = null;
   foundUserToAdd: any | null = null;
   findUserError: string | null = null;
+  findUserSearchError: string | null = null;
   groupMembers: any[] = [];
   selectedFile: File | null = null;
   selectedImageUrl: string | null = null;
-  isFilePending: boolean = false; 
+  isFilePending: boolean = false;
   uploadImageError: string | null = null;
   uploadFileError: string | null = null;
   selectedAvatar: File | null = null;
@@ -99,10 +91,14 @@ export class ChatComponent implements OnInit, OnDestroy {
   showDocsSection: boolean = false;
   zoomedImageUrl: string | null = null;
   showConfirmationModal: boolean = false;
-  private subscriptions: any[] = [];
+  showAcceptFriendCancelled: boolean = false;
   messageIdToDelete: string | null = null;
   isSidebarHidden: boolean = false;
   foundUsersByNameList: any[] = [];
+  foundUserSearchByName: any[] = [];
+  defaultAvatarUrl: string = 'assets/avatar-default-icon-2048x2048-h6w375ur.png';
+  friendRequests: any[] = [];
+  private subscriptions: any[] = [];
   private groupSubscriptions: { [groupId: string]: any[] } = {};
 
   @ViewChild('localVideo') localVideo: ElementRef<HTMLVideoElement> | undefined;
@@ -111,7 +107,6 @@ export class ChatComponent implements OnInit, OnDestroy {
   @ViewChild('chatContainer') private chatContainer!: ElementRef;
   @ViewChild('fileInput') fileInput!: ElementRef;
   @ViewChild('imageInput') imageInput!: ElementRef;
-  // @ViewChild('groupAvatarInput') groupAvatarInput!: ElementRef;
   @ViewChild('groupAvatarInputRef') groupAvatarInputRef!: ElementRef;
 
 
@@ -128,9 +123,11 @@ export class ChatComponent implements OnInit, OnDestroy {
   ) { }
 
   async ngOnInit() {
-    await this.initChat(); // Call initChat to establish the connection and subscribe
+    await this.initChat(); 
     await this.loadFriends();
+    await this.loadUserSearch();
     this.fetchUserDataAsync();
+    this.loadChatList();
     setTimeout(() => this.scrollToBottom(), 0);
     this.ringtoneAudio = new Audio(
       'assets/mixkit-marimba-waiting-ringtone-1360.wav'
@@ -166,6 +163,54 @@ export class ChatComponent implements OnInit, OnDestroy {
   handleShowFriend(friendId: string): void {
     this.openFriendInfoModal(friendId);
   }
+
+  async loadFriendRequests(): Promise<void> {
+    const url = `http://localhost:8010/api/v1/friends/requests-list/${this.userId}`;
+    const token = this.getToken();
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+    });
+      try {
+      const response = await this.http.get<any>(`http://localhost:8010/api/v1/friends/requests-list/${this.userId}`, {
+        headers,
+      })
+        .toPromise();
+      if (response?.data) {
+        this.friendRequests = response.data;
+      } else {
+        console.error('Không tìm thấy thông tin người dùng hoặc dữ liệu trả về không hợp lệ.');
+      }
+    } catch (error) {
+      console.error('Lỗi khi tải thông tin người dùng:', error);
+    }
+  }
+
+
+  async acceptFriend(friendId: string): Promise<void> {
+  const token = this.getToken();
+  const headers = new HttpHeaders({
+    Authorization: `Bearer ${token}`,
+  });
+  try {
+    console.log(friendId);
+    const response = await this.http.post<any>(
+      `http://localhost:8010/api/v1/friends/accept-request?userId=${this.userId}&friendId=${friendId}`,
+      {},
+      { headers }
+    ).toPromise();
+    alert("Chấp nhận lời mời kết bạn thành công !");
+  } catch (error: any) {
+    console.error('Lỗi khi chấp nhận lời mời kết bạn:', error);
+    let errorMessage = 'Đã xảy ra lỗi khi chấp nhận lời mời kết bạn.';
+    if (error?.error?.message) {
+      errorMessage = error.error.message;
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    alert(`${errorMessage}`);
+  }
+}
+
 
   async fetchUserDataAsync(): Promise<void> {
     const token = this.getToken();
@@ -308,16 +353,16 @@ export class ChatComponent implements OnInit, OnDestroy {
     if (this.groupAvatarFile && this.selectedGroupId) {
       const formData = new FormData();
       formData.append('image', this.groupAvatarFile);
-      formData.append('groupId', this.selectedGroupId); 
+      formData.append('groupId', this.selectedGroupId);
       try {
         const response = await this.http
           .post<any>(`http://localhost:8990/api/v1/groups/upload-group-avatar`, formData)
           .toPromise();
-          console.log(response)
-          this.loadGroupAvatarImage(response.url)
-          this.isEditingGroupAvatar = false;
-          alert('Avatar uploaded successfully:');
-        return response; 
+        console.log(response)
+        this.loadGroupAvatarImage(response.url)
+        this.isEditingGroupAvatar = false;
+        alert('Avatar uploaded successfully:');
+        return response;
       } catch (error) {
         console.error('Error uploading group avatar:', error);
         throw error; // Re-throw lỗi để component xử lý
@@ -330,8 +375,13 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   async loadGroupAvatarImage(filename: string) {
     try {
-        this.groupAvatarUrl = `http://localhost:8990/api/v1/groups/get-group-avatar/${this.getFilenameFromUrl(filename)}`;
-      } catch (error) {
+      if(filename){
+              this.groupAvatarUrl = `http://localhost:8990/api/v1/groups/get-group-avatar/${this.getFilenameFromUrl(filename)}`;
+
+      }else{
+        this.groupAvatarUrl = this.defaultAvatarUrl;
+      }
+    } catch (error) {
       console.error('Lỗi khi tải avatar nhóm:', error);
     }
   }
@@ -342,7 +392,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       return imageUrl;
     } catch (error) {
       console.error('Lỗi khi tải avatar nhóm:', error);
-      return 'path/to/default/group-avatar.png'; // Trả về URL mặc định khi có lỗi
+      return this.defaultAvatarUrl; 
     }
   }
 
@@ -357,7 +407,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     try {
       const response = await this.http
         .get<any>(
-          `http://localhost:8990/api/v1/chats/history/list-file/${this.userId}/${friendId}`, 
+          `http://localhost:8990/api/v1/chats/history/list-file/${this.userId}/${friendId}`,
           { headers }
         )
         .toPromise();
@@ -382,7 +432,7 @@ export class ChatComponent implements OnInit, OnDestroy {
           { headers }
         )
         .toPromise();
-        this.docList = response.data;
+      this.docList = response.data;
     } catch (error) {
       console.error('Lỗi khi tải lịch sử chat nhóm:', error);
     }
@@ -390,12 +440,12 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   showDocs(): void {
     this.showMediaSection = false;
-    this.showDocsSection = true; 
+    this.showDocsSection = true;
   }
 
   getFilenameFromUrl(url: string): string | null {
     if (!url) {
-      return null;
+      return this.defaultAvatarUrl;
     }
     const parts = url.split('/');
     if (parts.length > 0) {
@@ -507,7 +557,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   selectGroup(group: any) {
-    this.selectedFriendId = null; 
+    this.selectedFriendId = null;
     this.selectedGroupId = group.id;
     this.selectedGroupName = group.name;
     this.messages = []; // Xóa tin nhắn cũ
@@ -527,7 +577,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     try {
       const response = await this.http
         .get<any>(
-          `http://localhost:8990/api/v1/chats/room/history/${groupId}`, 
+          `http://localhost:8990/api/v1/chats/room/history/${groupId}`,
           { headers }
         )
         .toPromise();
@@ -539,29 +589,29 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
   }
 
-subscribeToAllGroups() {
-  // Lấy danh sách tất cả các nhóm từ chatList
-  const groups = this.chatList.filter(item => item.type === 'group');
-  groups.forEach(group => {
-    this.subscribeToGroupUpdates(group.id);
-  });
-  console.log("tất cả group được subcribe")
-}
-
-// Đăng ký chỉ để cập nhật sidebar cho một nhóm
-subscribeToGroupUpdates(groupId: string) {
-  if (!this.groupSubscriptions[groupId]) {
-    this.groupSubscriptions[groupId] = [];
+  subscribeToAllGroups() {
+    // Lấy danh sách tất cả các nhóm từ chatList
+    const groups = this.chatList.filter(item => item.type === 'group');
+    groups.forEach(group => {
+      this.subscribeToGroupUpdates(group.id);
+    });
+    console.log("tất cả group được subcribe")
   }
-  
-  const messageSub = this.stompClient.subscribe(`/topic/rooms/${groupId}`, (message: any) => {
-    const chatMessage: ChatMessage = JSON.parse(message.body);
-    // Chỉ cập nhật sidebar, không thêm vào messages
-    this.updateChatListItem(chatMessage);
-  });
-  
-  this.groupSubscriptions[groupId].push(messageSub);
-}
+
+  // Đăng ký chỉ để cập nhật sidebar cho một nhóm
+  subscribeToGroupUpdates(groupId: string) {
+    if (!this.groupSubscriptions[groupId]) {
+      this.groupSubscriptions[groupId] = [];
+    }
+
+    const messageSub = this.stompClient.subscribe(`/topic/rooms/${groupId}`, (message: any) => {
+      const chatMessage: ChatMessage = JSON.parse(message.body);
+      // Chỉ cập nhật sidebar, không thêm vào messages
+      this.updateChatListItem(chatMessage);
+    });
+
+    this.groupSubscriptions[groupId].push(messageSub);
+  }
 
   subscribeToGroupTopic(groupId: string) {
     this.unsubscribeAll();
@@ -672,12 +722,12 @@ subscribeToGroupUpdates(groupId: string) {
     console.log(headers);
     try {
       const response = await this.http
-      .post<any>(
-        `http://localhost:8010/api/v1/friends/send-request?userId=${userId}&friendId=${friendId}`,
-        {},
-        { headers: headers } 
-      )
-      .toPromise();
+        .post<any>(
+          `http://localhost:8010/api/v1/friends/send-request?userId=${userId}&friendId=${friendId}`,
+          {},
+          { headers: headers }
+        )
+        .toPromise();
       console.log('Yêu cầu kết bạn đã được gửi:', response);
       const button = document.getElementById(`addFriendButton-${friendId}`);
       if (button) {
@@ -769,7 +819,7 @@ subscribeToGroupUpdates(groupId: string) {
       try {
         await this.http
           .post<any>(
-            `http://localhost:8990/api/v1/groups/${this.selectedGroupId}/add-user`, 
+            `http://localhost:8990/api/v1/groups/${this.selectedGroupId}/add-user`,
             body,
             { headers }
           )
@@ -803,8 +853,8 @@ subscribeToGroupUpdates(groupId: string) {
     try {
       const response = await this.http.get<any>(`http://localhost:8990/api/v1/groups/get-group-users/${groupId}`, { headers }).toPromise();
       this.groupMembers = response.data;
-      this.groupMembers.forEach(member => { 
-        this.friendMapImage[member.id] = member.avatar!; 
+      this.groupMembers.forEach(member => {
+        this.friendMapImage[member.id] = member.avatar!;
       });
       console.log('Thành viên nhóm:', this.groupMembers);
     } catch (error) {
@@ -850,13 +900,13 @@ subscribeToGroupUpdates(groupId: string) {
       this.selectedGroupId = null;
       this.selectedGroupName = null;
       this.selectedFriendId = item.id;
-      this.selectedFriend = { friendId: item.id, friendName: item.name, avatar: item.avatar }; 
+      this.selectedFriend = { friendId: item.id, friendName: item.name, avatar: item.avatar };
       this.selectedFriendAvatarUrl = null; // Reset previous avatar URL
       setTimeout(() => this.scrollToBottom(), 80);
       if (this.selectedFriend.avatar) {
         this.loadSelectedFriendAvatar(this.selectedFriend.avatar);
       } else {
-        this.selectedFriendAvatarUrl = 'path/to/default/avatar.png';
+        this.selectedFriendAvatarUrl = this.defaultAvatarUrl;
       }
       this.loadChatHistory(item.id);
       this.loadImages(item.id);
@@ -877,7 +927,7 @@ subscribeToGroupUpdates(groupId: string) {
       this.loadImageGroupChatHistory(item.id)
       this.showMediaSection = true;
       this.loadFileGroupChatHistory(item.id);
-      this.showDocsSection = false;      
+      this.showDocsSection = false;
       // Di chuyển logic subscribe vào đây, đảm bảo stompClient đã kết nối
       if (this.stompClient && this.stompClient.connected) {
         this.subscribeToGroupTopic(this.selectedGroupId);
@@ -886,6 +936,12 @@ subscribeToGroupUpdates(groupId: string) {
       }
     }
   }
+
+  loadChatList() {
+  if (this.chatList && this.chatList.length > 0) {
+    this.selectChat(this.chatList[0]);
+  }
+}
 
   async loadSelectedFriendAvatar(filename: string) {
     try {
@@ -897,11 +953,11 @@ subscribeToGroupUpdates(groupId: string) {
         };
         reader.readAsDataURL(blob);
       } else {
-        this.selectedFriendAvatarUrl = 'path/to/default/avatar.png';
+        this.selectedFriendAvatarUrl = this.defaultAvatarUrl;
       }
     } catch (error) {
       console.error('Lỗi khi tải avatar của bạn bè:', error);
-      this.selectedFriendAvatarUrl = 'path/to/default/avatar.png';
+      this.selectedFriendAvatarUrl = this.defaultAvatarUrl;
     }
   }
 
@@ -973,20 +1029,20 @@ subscribeToGroupUpdates(groupId: string) {
                 });
               } else {
                 console.warn('Không nhận được blob dữ liệu avatar:', item.avatar);
-                return { ...item, avatarUrl: 'path/to/default/avatar.png' };
+                return { ...item, avatarUrl: this.defaultAvatarUrl};
               }
             } catch (error) {
               console.error('Lỗi khi tải avatar:', error);
-              return { ...item, avatarUrl: 'path/to/default/avatar.png' };
+              return { ...item, avatarUrl: this.defaultAvatarUrl };
             }
           } else if (item.type === 'group') {
             return { ...item, avatarUrl: await this.loadGroupAvatarImage2(item.avatar) };
           } else {
             console.warn(`Loại chat không xác định (${item.type}) nhưng có avatar:`, item.avatar);
-            return { ...item, avatarUrl: 'path/to/default/avatar.png' }; 
+            return { ...item, avatarUrl:this.defaultAvatarUrl };
           }
         } else {
-          return { ...item, avatarUrl: 'path/to/default/avatar.png' };
+          return { ...item, avatarUrl: this.defaultAvatarUrl};
         }
       }));
       console.log("item day" + response.data + userId)
@@ -1004,8 +1060,7 @@ subscribeToGroupUpdates(groupId: string) {
     }
   }
 
-
-  filterUsers(): void {
+    filterUsers(): void {
     this.foundUserToAdd = null;
     this.findUserError = '';
     this.foundUsersByNameList = [];
@@ -1019,8 +1074,8 @@ subscribeToGroupUpdates(groupId: string) {
     const searchTermLower = searchTerm.toLowerCase();
 
     const foundUsers = this.chatList.filter(item =>
-      (item.name.toLowerCase().includes(searchTermLower) ||
-        (item.email && item.email.toLowerCase().includes(searchTermLower)))
+    (item.name.toLowerCase().includes(searchTermLower) ||
+      (item.email && item.email.toLowerCase().includes(searchTermLower)))
     );
 
     if (foundUsers.length > 0) {
@@ -1032,6 +1087,61 @@ subscribeToGroupUpdates(groupId: string) {
     }
   }
 
+  async loadUserSearch() {
+    const token = this.getToken();
+    const userId = this.userId;
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+    });
+
+    try {
+      const response = await this.http
+        .get<any>(`http://localhost:8989/api/v1/users/get-users-friends/${userId}`, { headers })
+        .toPromise();
+      this.chatListItems = this.mapUserFriendDTOListToChatListItemList(response.data);
+      console.log(this.chatListItems)
+    } catch (error) {
+      console.error('Lỗi khi tải danh sách chat:', error);
+    }
+  }
+
+  mapUserToChatListItem(userData: any): ChatListItem {
+    return {
+      type: 'user',
+      id: userData.id,
+      name: userData.userName,
+      email: userData.email,
+      avatar: userData.avatar,
+      isConfirmed: userData.isConfirmed
+    };
+  }
+
+  mapUserFriendDTOListToChatListItemList(userFriendDTOList: any): ChatListItem[] {
+    return userFriendDTOList.map((dto: any) => this.mapUserToChatListItem(dto));
+  }
+  
+  searchAllUsers(): void {
+    this.findUserSearchError = '';
+    this.foundUserSearchByName = [];
+
+    const searchTerm = this.searchTermForSearchAll ? this.searchTermForSearchAll.trim() : '';
+
+    if (!searchTerm) {
+      return;
+    }
+    const searchTermLower = searchTerm.toLowerCase();
+    const foundUsers = this.chatListItems.filter(item =>
+    (item.name.toLowerCase().includes(searchTermLower) ||
+      (item.email && item.email.toLowerCase().includes(searchTermLower)))
+    );
+    if (foundUsers.length > 0) {
+      this.foundUserSearchByName = foundUsers;
+      this.findUserSearchError = '';
+    } else {
+      this.findUserSearchError = 'Không tìm thấy người dùng.';
+    }
+  }
+  
   getAvatarUrlForChatListItem(filename: string): string {
     return `http://localhost:8989/api/v1/users/avatar/get-avatar/${this.getFilenameFromUrl(filename)}`;
   }
@@ -1058,24 +1168,24 @@ subscribeToGroupUpdates(groupId: string) {
       if (this.isFilePending && this.selectedFile) {
         if (this.selectedFile.type.startsWith('image/')) {
           contentType = 'IMAGE';
-          fileUrl = await this.uploadImage(); 
+          fileUrl = await this.uploadImage();
           setTimeout(() => this.scrollToBottom(), 40);
           if (this.uploadImageError) {
-            this.uploadImageError = null; 
-            return; 
+            this.uploadImageError = null;
+            return;
           }
         } else {
           contentType = 'FILE';
-          fileUrl = await this.uploadFile(); 
+          fileUrl = await this.uploadFile();
           if (this.uploadFileError) {
             this.uploadFileError = null;
-            return; 
+            return;
           }
         }
       } else if (this.messageInput) {
         contentType = 'TEXT';
       } else {
-        return; 
+        return;
       }
 
       let receiverId: string;
@@ -1090,7 +1200,7 @@ subscribeToGroupUpdates(groupId: string) {
         messageType = 'CHAT';
         this.onNewMessage();
       } else {
-        return; 
+        return;
       }
 
       const chatMessage: ChatMessage = {
@@ -1116,9 +1226,9 @@ subscribeToGroupUpdates(groupId: string) {
         JSON.stringify(chatMessage)
       );
 
-      if ((this.selectedGroupId && messageType === 'GROUP_CHAT' && receiverId === this.selectedGroupId) || 
-              (this.selectedFriendId && messageType === 'CHAT' && receiverId === this.selectedFriendId)) {
-         this.messages.push(chatMessage);
+      if ((this.selectedGroupId && messageType === 'GROUP_CHAT' && receiverId === this.selectedGroupId) ||
+        (this.selectedFriendId && messageType === 'CHAT' && receiverId === this.selectedFriendId)) {
+        this.messages.push(chatMessage);
       }
       this.updateMediaAndDocs();
       this.updateChatListItem(chatMessage);
@@ -1126,7 +1236,7 @@ subscribeToGroupUpdates(groupId: string) {
       this.messageInput = '';
       this.selectedFile = null;
       this.selectedImageUrl = null;
-      this.isFilePending = false; 
+      this.isFilePending = false;
       this.fileInput.nativeElement.value = '';
       this.imageInput.nativeElement.value = '';
     }
@@ -1165,8 +1275,8 @@ subscribeToGroupUpdates(groupId: string) {
             errorMessage = `Lỗi từ server: ${error.message}`;
           }
         }
-        this.uploadFileError = errorMessage; 
-        alert(errorMessage); 
+        this.uploadFileError = errorMessage;
+        alert(errorMessage);
         return null;
       }
     }
@@ -1183,7 +1293,7 @@ subscribeToGroupUpdates(groupId: string) {
           .post<any>('http://localhost:8990/api/v1/file/upload-image', formData)
           .toPromise();
         console.log('Image uploaded:', response);
-        this.uploadImageError = null; 
+        this.uploadImageError = null;
         return response.url;
       } catch (error: any) {
         let errorMessage = 'Đã có lỗi xảy ra khi tải lên ảnh.';
@@ -1198,8 +1308,8 @@ subscribeToGroupUpdates(groupId: string) {
             errorMessage = `Lỗi từ server: ${error.message}`;
           }
         }
-        this.uploadImageError = errorMessage; 
-        alert(errorMessage); 
+        this.uploadImageError = errorMessage;
+        alert(errorMessage);
         return null;
       }
     }
@@ -1209,7 +1319,7 @@ subscribeToGroupUpdates(groupId: string) {
   updateChatListItem(newMessage: ChatMessage) {
     const receiverOrGroupId = newMessage.type === 'CHAT' ?
       newMessage.senderId === this.userId ? newMessage.receiverId : newMessage.senderId :
-      newMessage.receiverId; 
+      newMessage.receiverId;
 
     const index = this.chatList.findIndex(item => item.id === receiverOrGroupId);
     if (index !== -1) {
@@ -1255,6 +1365,15 @@ subscribeToGroupUpdates(groupId: string) {
     this.messageIdToDelete = null;
   }
 
+  acceptFriendCancelled() {
+    this.showAcceptFriendCancelled = false;
+  }
+
+   openFriendRequestModal() {
+    this.showAcceptFriendCancelled = true;
+    this.loadFriendRequests();
+  }
+
   async initChat() {
     const token = this.getToken();
     await this.getUserMailFromToken();
@@ -1265,75 +1384,75 @@ subscribeToGroupUpdates(groupId: string) {
 
     const socket = new SockJS(`http://localhost:8095/ws-chat?token=${token}`);
     this.stompClient = Stomp.over(socket);
-    this.stompClient.connect({},() => {
-        console.log('Kết nối WebSocket thành công');
+    this.stompClient.connect({}, () => {
+      console.log('Kết nối WebSocket thành công');
 
-        this.stompClient.subscribe(`/user/queue/messages`, (message: any) => {
-          const chatMessage: ChatMessage = JSON.parse(message.body);
-          if (
-            chatMessage.senderId !== this.userId &&
-            chatMessage.receiverId === this.userId &&
-            chatMessage.type === 'CHAT'
-          ) {
-            // Chỉ hiển thị tin nhắn 1-1 cho người nhận
-            if (this.selectedFriendId === chatMessage.senderId) {
-              this.messages.push(chatMessage);
-              setTimeout(() => this.scrollToBottom(), 50);
-            }
-            this.updateChatListItem(chatMessage);
+      this.stompClient.subscribe(`/user/queue/messages`, (message: any) => {
+        const chatMessage: ChatMessage = JSON.parse(message.body);
+        if (
+          chatMessage.senderId !== this.userId &&
+          chatMessage.receiverId === this.userId &&
+          chatMessage.type === 'CHAT'
+        ) {
+          // Chỉ hiển thị tin nhắn 1-1 cho người nhận
+          if (this.selectedFriendId === chatMessage.senderId) {
+            this.messages.push(chatMessage);
+            setTimeout(() => this.scrollToBottom(), 50);
           }
-          console.log('Tin nhắn cá nhân nhận được:', chatMessage);
-        });
+          this.updateChatListItem(chatMessage);
+        }
+        console.log('Tin nhắn cá nhân nhận được:', chatMessage);
+      });
 
-        this.stompClient.subscribe(
-          `/user/queue/webrtc/offer`,
-          (message: any) => {
-            const payload = JSON.parse(message.body);
-            this.handleOffer(payload.offer, payload.callerId);
-          }
-        );
+      this.stompClient.subscribe(
+        `/user/queue/webrtc/offer`,
+        (message: any) => {
+          const payload = JSON.parse(message.body);
+          this.handleOffer(payload.offer, payload.callerId);
+        }
+      );
 
-        this.stompClient.subscribe(
-          `/user/queue/webrtc/answer`,
-          (message: any) => {
-            const payload = JSON.parse(message.body);
-            this.handleAnswer(payload.answer);
-          }
-        );
+      this.stompClient.subscribe(
+        `/user/queue/webrtc/answer`,
+        (message: any) => {
+          const payload = JSON.parse(message.body);
+          this.handleAnswer(payload.answer);
+        }
+      );
 
-        this.stompClient.subscribe(
-          `/user/queue/webrtc/icecandidate`,
-          (message: any) => {
-            const payload = JSON.parse(message.body);
-            this.handleIceCandidate(payload.iceCandidate);
-          }
-        );
+      this.stompClient.subscribe(
+        `/user/queue/webrtc/icecandidate`,
+        (message: any) => {
+          const payload = JSON.parse(message.body);
+          this.handleIceCandidate(payload.iceCandidate);
+        }
+      );
 
-        this.stompClient.subscribe(
-          `/user/queue/webrtc/reject`,
-          (message: any) => {
-            const payload = JSON.parse(message.body);
-            alert(
-              `${this.friendMap[payload.callerId] || payload.callerId
-              } rejected the call.`
-            );
-            this.stopCall();
-          }
-        );
-
-        console.log('Đã đăng ký các kênh WebSocket.');
-
-        socket.onclose = () => {
-          console.log(
-            'WebSocket connection closed, attempting to reconnect...'
+      this.stompClient.subscribe(
+        `/user/queue/webrtc/reject`,
+        (message: any) => {
+          const payload = JSON.parse(message.body);
+          alert(
+            `${this.friendMap[payload.callerId] || payload.callerId
+            } rejected the call.`
           );
-          setTimeout(() => this.initChat(), 5000);
-        };
+          this.stopCall();
+        }
+      );
 
-        socket.onerror = (error) => {
-          console.error('WebSocket error:', error);
-        };
-      },
+      console.log('Đã đăng ký các kênh WebSocket.');
+
+      socket.onclose = () => {
+        console.log(
+          'WebSocket connection closed, attempting to reconnect...'
+        );
+        setTimeout(() => this.initChat(), 5000);
+      };
+
+      socket.onerror = (error) => {
+        console.error('WebSocket error:', error);
+      };
+    },
       (error: any) => {
         console.error('Lỗi kết nối websocket: ', error);
       }

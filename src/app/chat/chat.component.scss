@@ -251,3 +251,29 @@ input:focus {
   outline: none !important;
   box-shadow: none !important;
 }
+
+
+.search-suggestions .dropdown-item {
+  transition: background-color 0.15s ease-in-out;
+}
+
+.search-suggestions .dropdown-item:hover {
+  background-color: #f5f5f5;
+}
+
+
+.member-item {
+  transition: background-color 0.15s ease-in-out;
+}
+
+.member-item:hover {
+  background-color: #f5f5f5; 
+}
+
+.member-item.selected-member-item {
+  background-color: #e0e0e0; 
+}
+
+.clickable {
+  cursor: pointer;
+}

@@ -6,7 +6,7 @@ import { NgIf, NgClass } from '@angular/common';
 import { AvatarService } from '../../service/avatar.service';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { UserDTO } from '../../model/dto.model';
-import { ActivatedRoute } from '@angular/router'; 
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'friend-infor',
@@ -18,13 +18,14 @@ import { ActivatedRoute } from '@angular/router';
 })
 export class FriendProfileComponent implements OnInit, OnDestroy {
   @Input() userId: string | null = null;
-  @Output() closeModal: EventEmitter<void> = new EventEmitter<void>(); 
+  @Output() closeModal: EventEmitter<void> = new EventEmitter<void>();
   user: UserDTO = {};
   email: string | null = null;
   selectedAvatar: File | null = null;
   avatarUrl: SafeUrl | null = null;
   isFriend: boolean = false;
   currentUserId: string | null = null;
+  defaultAvatarUrl: string = 'assets/avatar-default-icon-2048x2048-h6w375ur.png';
   private readonly destroy$ = new Subject<void>();
 
   constructor(
@@ -42,8 +43,8 @@ export class FriendProfileComponent implements OnInit, OnDestroy {
       if (idFromRoute) {
         this.userId = idFromRoute;
         this.fetchFriendDataAsync(this.userId);
-         this.checkFriendshipStatus(this.currentUserId, this.userId);
-      } else if (this.userId) { 
+        this.checkFriendshipStatus(this.currentUserId, this.userId);
+      } else if (this.userId) {
         this.fetchFriendDataAsync(this.userId);
         this.checkFriendshipStatus(this.currentUserId, this.userId);
       } else {
@@ -68,12 +69,12 @@ export class FriendProfileComponent implements OnInit, OnDestroy {
 
         if (this.email) {
           this.currentUserId = await this.getCurrentUserId(this.email);
-          console.log("thng tin nguoi dung hien tai:"+ this.currentUserId)
+          console.log("thng tin nguoi dung hien tai:" + this.currentUserId)
         } else {
           console.error('Email không được tìm thấy trong token.');
           return null;
         }
-        return this.email; 
+        return this.email;
       } catch (error) {
         console.error('Lỗi giải mã token:', error);
         return null;
@@ -127,25 +128,44 @@ export class FriendProfileComponent implements OnInit, OnDestroy {
     }
   }
 
-    async checkFriendshipStatus(currentUserId: any, friendId: any): Promise<void> {
-        const token = this.getToken();
-        const headers = new HttpHeaders({
-            Authorization: `Bearer ${token}`,
-        });
-        try {
-            const response = await this.http.get<any>(`http://localhost:8010/api/v1/friends/check?userId=${currentUserId}&friendId=${friendId}`, { headers, })
-                .toPromise();
-            this.isFriend = response || false;
-            console.log("bạn bè "+ this.isFriend)
-        } catch (error) {
-            console.error('Lỗi khi kiểm tra trạng thái bạn bè:', error);
-            this.isFriend = false;
-        }
+  async checkFriendshipStatus(currentUserId: any, friendId: any): Promise<void> {
+    const token = this.getToken();
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+    });
+    try {
+      const response = await this.http.get<any>(`http://localhost:8010/api/v1/friends/check?userId=${currentUserId}&friendId=${friendId}`, { headers, })
+        .toPromise();
+      this.isFriend = response.data;
+      console.log("bạn bè " + this.isFriend)
+    } catch (error) {
+      console.error('Lỗi khi kiểm tra trạng thái bạn bè:', error);
+      this.isFriend = false;
     }
+  }
 
-  // onFriendClick(friendId: string): void {
-  //   this.showFriend.emit(friendId);
-  // }
+  async addFriend(currentUserId: any, friendId: any): Promise<void> {
+    const token = this.getToken();
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+    });
+    try {
+      const response = await this.http.post<any>(`http://localhost:8010/api/v1/friends/send-request?userId=${currentUserId}&friendId=${friendId}`, {}, { headers, })
+        .toPromise();
+      alert("Gửi yêu cầu kết bạn thành công !");
+    } catch (error: any) { // Type 'error' as 'any' or 'HttpErrorResponse'
+      console.error('Lỗi khi gửi yêu cầu kết bạn:', error);
+      this.isFriend = false;
+      let errorMessage = 'Đã xảy ra lỗi khi gửi yêu cầu kết bạn.';
+      if (error?.error?.message) {
+        errorMessage = error.error.message;
+      } else if (error.message) {
+        errorMessage = error.message; // Fallback to Angular's error message
+      }
+      alert(`${errorMessage}`);
+    }
+  }
+
 
   getFilenameFromUrl(url: string): string | null {
     if (!url) {
