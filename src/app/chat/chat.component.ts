@@ -13,6 +13,7 @@ import {
   HttpClientModule,
   HttpErrorResponse,
   HttpHeaders,
+  HttpParams,
 } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -22,6 +23,8 @@ import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { AvatarService } from '../service/avatar.service';
 import { RouterModule } from '@angular/router';
 import { FriendProfileComponent } from './friendProfile/friend-profile.component';
+import { Router } from '@angular/router';
+
 
 @Component({
   selector: 'app-chat',
@@ -57,6 +60,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   incomingCallOffer: RTCSessionDescriptionInit | null = null;
   ringtoneAudio: HTMLAudioElement | null = null;
   isCreateGroupModalOpen: boolean = false;
+  isSettingsOpen: boolean = false;
   newGroupName: string = '';
   selectedGroupId: string | null = null;
   selectedGroupName: string | null = null;
@@ -120,6 +124,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   constructor(private http: HttpClient,
     private avatarService: AvatarService,
     private sanitizer: DomSanitizer,
+     private router: Router
   ) { }
 
   async ngOnInit() {
@@ -1372,6 +1377,46 @@ export class ChatComponent implements OnInit, OnDestroy {
    openFriendRequestModal() {
     this.showAcceptFriendCancelled = true;
     this.loadFriendRequests();
+  }
+
+  toggleSettings() {
+  this.isSettingsOpen = !this.isSettingsOpen;
+  }
+
+  logout() {
+    const token = localStorage.getItem('accessToken');
+    const refreshToken = localStorage.getItem('refreshToken'); 
+
+    if (!token || !refreshToken) {
+      console.error('Access token or refresh token not found.');
+      this.router.navigate(['/login']); 
+      return;
+    }
+
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+
+    const params = new HttpParams()
+      .set('refresh_token', refreshToken);
+
+    this.http.post<any>(
+      'http://localhost:8989/api/v1/users/logout-account',
+      {}, 
+      { headers: headers, params: params }
+    ).subscribe({
+      next: (response) => {
+        console.log('Logout successful', response);
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        this.router.navigate(['/login']);
+        this.isSettingsOpen = false;
+      },
+      error: (error) => {
+        console.error('Logout failed', error);
+        this.isSettingsOpen = false; 
+      }
+    });
   }
 
   async initChat() {

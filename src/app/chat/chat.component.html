@@ -57,8 +57,24 @@
           <li class="nav-item mb-2">
             <a class="nav-link text-center" (click)="openFriendRequestModal()"><i class="bi bi-bell-fill fs-5"></i></a>
           </li>
-          <li class="nav-item">
-            <a class="nav-link text-center"><i class="bi bi-gear-fill fs-5"></i></a>
+          <li class="nav-item" style="position: relative;">
+            <a class="nav-link text-center" (click)="toggleSettings()"><i class="bi bi-gear-fill fs-5"></i></a>
+            <div *ngIf="isSettingsOpen" class="settings-dropdown bg-white rounded shadow-sm p-2"
+              style="position: absolute; left: 60px; top: 15px; width: 230px; border: 1px solid #ccc; z-index: 1000;">
+              <ul class="list-unstyled mb-0">
+                <li class="nav-item mb-1">
+                  <a class="nav-link text-dark small d-flex align-items-center" style="cursor: pointer;">
+                    <i class="bi bi-file-person me-2"></i> Thông tin tài khoản
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link text-danger small d-flex align-items-center" style="cursor: pointer;"
+                    (click)="logout()">
+                    <i class="bi bi-box-arrow-right me-2"></i> Đăng xuất
+                  </a>
+                </li>
+              </ul>
+            </div>
           </li>
         </ul>
       </nav>
