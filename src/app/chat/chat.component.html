@@ -331,9 +331,6 @@
 
           <div class="d-flex align-items-center">
             <div class="input-actions me-2">
-              <button class="btn btn-sm btn-light rounded-circle me-1">
-                <i class="bi bi-plus"></i>
-              </button>
               <input type="file" (change)="onFileSelected($event)" style="display: none" #fileInput />
               <button class="btn btn-sm btn-light rounded-circle me-1" (click)="fileInput.click()">
                 <i class="bi bi-paperclip"></i>
@@ -342,9 +339,6 @@
                 #imageInput />
               <button class="btn btn-sm btn-light rounded-circle me-1" (click)="imageInput.click()">
                 <i class="bi bi-image-fill"></i>
-              </button>
-              <button class="btn btn-sm btn-light rounded-circle">
-                <i class="bi bi-emoji-smile-fill"></i>
               </button>
             </div>
             <div class="input-field flex-grow-1 me-2">
@@ -641,7 +635,7 @@
       </div>
       <div class="modal-body">
         <div *ngFor="let request of friendRequests"
-          class="friend-request-item d-flex justify-content-between align-items-center">
+          class="friend-request-item d-flex justify-content-between align-items-center  p-2 member-item">
           <div class="d-flex align-items-center clickable" [style.cursor]="'pointer'">
             <div class="avatar rounded-circle me-2" style="
                   width: 28px;

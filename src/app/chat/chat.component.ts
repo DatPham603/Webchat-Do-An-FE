@@ -155,6 +155,8 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.isSidebarHidden = !this.isSidebarHidden;
   }
 
+
+  //friend
   openFriendInfoModal(friendId: string): void {
     this.selectedGroupFriendId = friendId;
     this.isFriendInfoModalOpen = true;

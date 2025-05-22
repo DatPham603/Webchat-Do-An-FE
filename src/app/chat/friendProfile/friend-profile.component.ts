@@ -23,6 +23,7 @@ export class FriendProfileComponent implements OnInit, OnDestroy {
   email: string | null = null;
   selectedAvatar: File | null = null;
   avatarUrl: SafeUrl | null = null;
+  isLoadingFriendshipStatus: boolean = true;
   isFriend: boolean = false;
   currentUserId: string | null = null;
   defaultAvatarUrl: string = 'assets/avatar-default-icon-2048x2048-h6w375ur.png';
@@ -42,11 +43,11 @@ export class FriendProfileComponent implements OnInit, OnDestroy {
       const idFromRoute = params.get('id');
       if (idFromRoute) {
         this.userId = idFromRoute;
-        this.fetchFriendDataAsync(this.userId);
         this.checkFriendshipStatus(this.currentUserId, this.userId);
+        this.fetchFriendDataAsync(this.userId);
       } else if (this.userId) {
-        this.fetchFriendDataAsync(this.userId);
         this.checkFriendshipStatus(this.currentUserId, this.userId);
+        this.fetchFriendDataAsync(this.userId);
       } else {
         console.error('Không có ID người bạn.');
       }
@@ -128,21 +129,40 @@ export class FriendProfileComponent implements OnInit, OnDestroy {
     }
   }
 
+  // async checkFriendshipStatus(currentUserId: any, friendId: any): Promise<void> {
+  //   const token = this.getToken();
+  //   const headers = new HttpHeaders({
+  //     Authorization: `Bearer ${token}`,
+  //   });
+  //   try {
+  //     const response = await this.http.get<any>(`http://localhost:8010/api/v1/friends/check?userId=${currentUserId}&friendId=${friendId}`, { headers, })
+  //       .toPromise();
+  //     this.isFriend = response.data;
+  //     console.log("bạn bè " + this.isFriend)
+  //   } catch (error) {
+  //     console.error('Lỗi khi kiểm tra trạng thái bạn bè:', error);
+  //     this.isFriend = false;
+  //   }
+  // }
+
   async checkFriendshipStatus(currentUserId: any, friendId: any): Promise<void> {
-    const token = this.getToken();
-    const headers = new HttpHeaders({
-      Authorization: `Bearer ${token}`,
-    });
-    try {
-      const response = await this.http.get<any>(`http://localhost:8010/api/v1/friends/check?userId=${currentUserId}&friendId=${friendId}`, { headers, })
-        .toPromise();
-      this.isFriend = response.data;
-      console.log("bạn bè " + this.isFriend)
-    } catch (error) {
-      console.error('Lỗi khi kiểm tra trạng thái bạn bè:', error);
-      this.isFriend = false;
-    }
+  this.isLoadingFriendshipStatus = true; // Bắt đầu tải
+  const token = this.getToken();
+  const headers = new HttpHeaders({
+    Authorization: `Bearer ${token}`,
+  });
+  try {
+    const response = await this.http.get<any>(`http://localhost:8010/api/v1/friends/check?userId=${currentUserId}&friendId=${friendId}`, { headers, })
+      .toPromise();
+    this.isFriend = response.data;
+    console.log("bạn bè " + this.isFriend);
+  } catch (error) {
+    console.error('Lỗi khi kiểm tra trạng thái bạn bè:', error);
+    this.isFriend = false;
+  } finally {
+    this.isLoadingFriendshipStatus = false; // Kết thúc tải (dù thành công hay thất bại)
   }
+}
 
   async addFriend(currentUserId: any, friendId: any): Promise<void> {
     const token = this.getToken();

@@ -8,8 +8,11 @@
       </div>
       <div>
         <h5 class="mb-0">{{ user?.userName }}</h5>
-        <button *ngIf="!isFriend && currentUserId !== user?.id" type="button" class="btn btn-sm btn-primary mt-2"
-          (click)="addFriend(currentUserId, user?.id)">Kết bạn</button>
+        <!-- <button *ngIf="!isFriend && currentUserId !== user?.id" type="button" class="btn btn-sm btn-primary mt-2"
+          (click)="addFriend(currentUserId, user?.id)">Kết bạn</button> -->
+          <button *ngIf="!isFriend && currentUserId !== user?.id && !isLoadingFriendshipStatus"
+        type="button" class="btn btn-sm btn-primary mt-2"
+        (click)="addFriend(currentUserId, user?.id)">Kết bạn</button>
       </div>
     </div>
     <div class="card-body p-3">
