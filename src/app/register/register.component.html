@@ -1,0 +1,144 @@
+<div class="container-fluid vh-100 d-flex align-items-center justify-content-center"
+  style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+  <div class="row w-100 justify-content-center">
+    <div class="col-lg-10 col-xl-9">
+      <div class="card shadow-lg border-0" style="border-radius: 20px; overflow: hidden;">
+        <div class="row g-0">
+          <!-- Left Side - Welcome Section -->
+          <div class="col-md-5 d-flex align-items-center justify-content-center text-white p-5"
+            style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <div class="text-center">
+              <div class="mb-4">
+                <i class="bi bi-person-heart" style="font-size: 4rem;"></i>
+              </div>
+              <h2 class="fw-bold mb-3">Chào mừng bạn!</h2>
+              <p class="mb-4 opacity-75">
+                Bạn đã có tài khoản? Đăng nhập ngay để khám phá những tính năng tuyệt vời.
+              </p>
+              <button class="btn btn-outline-light btn-lg fw-semibold px-4 py-2" (click)="goToLogin()"
+                style="border-radius: 25px; border-width: 2px;">
+                <i class="bi bi-arrow-left-circle me-2"></i>Đăng nhập
+              </button>
+            </div>
+          </div>
+
+          <!-- Right Side - Register Form -->
+          <div class="col-md-7 p-5 bg-white">
+            <div class="text-center mb-4">
+              <div class="mb-3">
+                <i class="bi bi-person-plus-fill" style="font-size: 3rem; color: #667eea;"></i>
+              </div>
+              <h2 class="fw-bold text-dark mb-2">Tạo tài khoản mới</h2>
+              <p class="text-muted">Điền thông tin để bắt đầu</p>
+            </div>
+
+            <form (ngSubmit)="register()" autocomplete="off">
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="email" class="form-label fw-semibold text-dark">
+                    <i class="bi bi-envelope me-2"></i>Email
+                  </label>
+                  <input type="email" class="form-control" id="email" placeholder="example@email.com"
+                    [(ngModel)]="email" name="email" required email #emailRef="ngModel"
+                    style="border-radius: 10px; border: 2px solid #e9ecef; padding: 10px 14px;" />
+                  <div *ngIf="emailRef.invalid && (emailRef.dirty || emailRef.touched)" class="text-danger mt-1"
+                    style="font-size: 0.9rem;">
+                    <div *ngIf="emailRef.errors?.['required']">Email không được để trống.</div>
+                    <div *ngIf="emailRef.errors?.['email']">Email không đúng định dạng.</div>
+                  </div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label for="userName" class="form-label fw-semibold text-dark">
+                    <i class="bi bi-person me-2"></i>Họ và tên
+                  </label>
+                  <input type="text" class="form-control" id="fullName" placeholder="Tên tài khoản"
+                    [(ngModel)]="userName" name="fullName" required #userNameRef="ngModel"
+                    style="border-radius: 10px; border: 2px solid #e9ecef; padding: 10px 14px;" />
+                  <div *ngIf="userNameRef.invalid && (userNameRef.dirty || userNameRef.touched)"
+                    class="text-danger mt-1" style="font-size: 0.9rem;">
+                    <div *ngIf="userNameRef.errors?.['required']">Họ và tên không được để trống.</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="password" class="form-label fw-semibold text-dark">
+                    <i class="bi bi-lock me-2"></i>Mật khẩu
+                  </label>
+                  <input type="password" class="form-control" id="password" placeholder="••••••••"
+                    [(ngModel)]="passWord" name="passWord" required #passRef="ngModel"
+                    style="border-radius: 10px; border: 2px solid #e9ecef; padding: 10px 14px;" />
+                  <div *ngIf="passRef.invalid && (passRef.dirty || passRef.touched)" class="text-danger mt-1"
+                    style="font-size: 0.9rem;">
+                    <div *ngIf="passRef.errors?.['required']">Mật khẩu không được để trống.</div>
+                  </div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label for="phoneNumber" class="form-label fw-semibold text-dark">
+                    <i class="bi bi-telephone me-2"></i>Số điện thoại
+                  </label>
+                  <input type="tel" class="form-control" id="phoneNumber" placeholder="số điện thoại"
+                    [(ngModel)]="phoneNumber" name="phoneNumber" required pattern="^[0-9]{10}$" #phoneRef="ngModel"
+                    style="border-radius: 10px; border: 2px solid #e9ecef; padding: 10px 14px;" />
+                  <div *ngIf="phoneRef.invalid && (phoneRef.dirty || phoneRef.touched)" class="text-danger mt-1"
+                    style="font-size: 0.9rem;">
+                    <div *ngIf="phoneRef.errors?.['required']">Số điện thoại không được để trống.</div>
+                    <div *ngIf="phoneRef.invalid && (phoneRef.dirty || phoneRef.touched)" class="text-danger mt-1"
+                      style="font-size: 0.9rem;">
+                      <div *ngIf="phoneRef.errors?.['pattern']">Số điện thoại phải gồm 10 chữ số.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label for="address" class="form-label fw-semibold text-dark">
+                  <i class="bi bi-geo-alt me-2"></i>Địa chỉ
+                </label>
+                <input type="text" class="form-control" id="address"
+                  placeholder="Số nhà, đường, phường, quận, thành phố" [(ngModel)]="address" name="address" required
+                  #addressRef="ngModel" style="border-radius: 10px; border: 2px solid #e9ecef; padding: 10px 14px;" />
+                <div *ngIf="addressRef.invalid && (addressRef.dirty || addressRef.touched)" class="text-danger mt-1"
+                  style="font-size: 0.9rem;">
+                  <div *ngIf="addressRef.errors?.['required']">Địa chỉ không được để trống.</div>
+                </div>
+              </div>
+
+              <div class="mb-4">
+                <label for="dateOfBirth" class="form-label fw-semibold text-dark">
+                  <i class="bi bi-calendar-heart me-2"></i>Ngày sinh
+                </label>
+                <input type="date" class="form-control" id="dateOfBirth" [(ngModel)]="dateOfBirth" name="dateOfBirth"
+                  required #dobRef="ngModel"
+                  style="border-radius: 10px; border: 2px solid #e9ecef; padding: 10px 14px;" />
+                <div *ngIf="dobRef.invalid && (dobRef.dirty || dobRef.touched)" class="text-danger mt-1"
+                  style="font-size: 0.9rem;">
+                  <div *ngIf="dobRef.errors?.['required']">Ngày sinh không được để trống.</div>
+                </div>
+              </div>
+
+              <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-lg fw-semibold"
+                  style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; border-radius: 10px; color: white; padding: 12px;">
+                  <i class="bi bi-person-check me-2"></i>Tạo tài khoản
+                </button>
+              </div>
+            </form>
+
+
+            <div class="mt-3" *ngIf="errorMessage">
+              <div class="alert alert-danger d-flex align-items-center" style="border-radius: 10px;">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                {{ errorMessage }}
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

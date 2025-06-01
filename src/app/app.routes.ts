@@ -5,14 +5,15 @@ import { AppComponent } from './app.component'; // Import AppComponent
 import { NgModule } from '@angular/core';
 import { UserProfileComponent } from './chat/user-profile/user-profile.component';
 import { FriendProfileComponent } from './chat/friendProfile/friend-profile.component';
+import { RegisterComponent } from './register/register.component';
 
 export const routes: Routes = [
-  { path: 'home', component: AppComponent }, // Sửa đổi nếu cần
+  { path: 'home', component: AppComponent }, 
   { path: 'login', component: LoginComponent },
-  { path: 'chat', component: ChatComponent }, // Thêm route cho ChatComponent
-  {path: 'user-infor', component: UserProfileComponent },
-  // {path : 'friend-infor/:id', component: FriendProfileComponent }, 
-  { path: '', redirectTo: '/login', pathMatch: 'full' } // Thêm route mặc định (tùy chọn)
+  { path: 'chat', component: ChatComponent },
+  // {path: 'user-infor', component: UserProfileComponent },
+    { path: 'register', component: RegisterComponent }, 
+  { path: '', redirectTo: '/login', pathMatch: 'full' }
 ];
 
 @NgModule({

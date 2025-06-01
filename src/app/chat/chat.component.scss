@@ -103,7 +103,7 @@
 }
 
 .chats-list li {
-  cursor: pointer; /* Đảm bảo có con trỏ chuột khi hover */
+  cursor: pointer; 
 }
 
 .chats-list li.active {
@@ -116,8 +116,8 @@
 
 .avatar {
   position: relative; 
-  width: 20px;
-  height: 20px;
+  width: 25px;
+  height: 25px;
   background-color: #ddd;
   border-radius: 50%;
   overflow: hidden;
@@ -136,12 +136,6 @@
   font-size: 12px; /* Điều chỉnh kích thước icon */
 }
 
-.media-section {
-  margin-top: 1rem;
-  padding: 1rem;
-  border-top: 1px solid #eee;
-}
-
 .media-section h6 {
   margin-bottom: 0.5rem;
   color: #555;
@@ -150,14 +144,16 @@
 }
 
 .media-section .image-gallery {
+  width: 330px;
+  max-height: 270px; 
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 0fr)); 
-  gap: 0.3rem;
-  padding: 0.3rem 0;
+  gap: 0.2rem;
+  padding: 0.2rem 0;
 }
 
 .media-section .image-gallery .image-item img {
-  width: 100%; /* Ảnh chiếm toàn bộ container */
+  width: 100%; 
   height: auto;
   border: 1px solid #ddd;
   border-radius: 5px;
@@ -166,7 +162,7 @@
 }
 
 .media-section .image-gallery .image-item img:hover {
-  transform: scale(1.05); /* Hiệu ứng zoom nhẹ khi hover */
+  transform: scale(1.02); 
   cursor: pointer;
 }
 
@@ -174,6 +170,22 @@
   grid-column: 1 / -1;
   text-align: center;
   padding: 1rem 0;
+}
+
+.image-gallery {
+  max-height: 270px; 
+  width: 320px;
+  overflow-y: auto; 
+  border: 1px solid #eee; 
+  padding: 5px;
+}
+
+.doc-gallery{
+  max-height: 270px; 
+  width: 330px;
+  overflow-y: auto; 
+  border: 1px solid #eee; 
+  padding: 5px; 
 }
 
 .image-gallery .image-item img {
@@ -209,4 +221,59 @@
 .choose-file-btn.selected-tab {
   background-color: #0d6efd; 
   color: white;
+}
+
+.message-contents{
+  --bs-gutter-x: 0;
+}
+
+.call-overlay {
+  position: fixed; /* Để phần tử cố định trên màn hình */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* Dịch chuyển để căn giữa chính xác */
+  z-index: 1000; /* Đảm bảo nó hiển thị trên các phần tử khác */
+  /* Các thuộc tính tạo kiểu khác */
+  background-color: rgba(0, 0, 0, 0.8); /* Màu nền mờ */
+  color: white;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Hiệu ứng đổ bóng */
+  min-width: 200px; /* Độ rộng tối thiểu */
+  text-align: center; /* Căn chữ ở giữa */
+}
+
+.call-overlay button {
+  margin-top: 10px;
+}
+
+input:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+
+.search-suggestions .dropdown-item {
+  transition: background-color 0.15s ease-in-out;
+}
+
+.search-suggestions .dropdown-item:hover {
+  background-color: #f5f5f5;
+}
+
+
+.member-item {
+  transition: background-color 0.15s ease-in-out;
+}
+
+.member-item:hover {
+  background-color: #f5f5f5; 
+}
+
+.member-item.selected-member-item {
+  background-color: #e0e0e0; 
+}
+
+.clickable {
+  cursor: pointer;
 }

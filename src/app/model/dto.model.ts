@@ -10,6 +10,7 @@ export interface UserDTO {
 }
 
 export interface ChatMessage {
+    id?: string;
     senderId: string;
     senderName: string;
     receiverId: string;
@@ -30,5 +31,6 @@ export interface ChatListItem {
     lastMessage?: string;
     lastActive?: Date | string;
     unreadCount?: number;
+    isConfirmed?: boolean
     //thêm contentType vào đây để hiển thị icon cho tin nhắn cuối cùng
 }

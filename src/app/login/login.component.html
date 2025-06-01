@@ -1,42 +1,90 @@
-<div class="container d-flex justify-content-center align-items-center vh-100">
-  <div class="row w-100">
-    <div class="col-md-6">
-        <h2 class="text-center mb-4">Đăng Nhập</h2>
-    <form (ngSubmit)="login()">
-      <div class="mb-3">
-        <label for="username" class="form-label">Tên đăng nhập</label>
-        <input
-          type="text"
-          class="form-control"
-          id="username"
-          placeholder="Nhập tên đăng nhập"
-          [(ngModel)]="email"
-          name="email"
-        />
+<div class="container-fluid vh-100 d-flex align-items-center justify-content-center" 
+     style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+<div class="row w-100 justify-content-center" style="border: none !important;">
+      <div class="col-lg-10 col-xl-8">
+      <div class="card shadow-lg border-0" style="border-radius: 20px; overflow: hidden;">
+        <div class="row g-0">
+          <!-- Left Side - Login Form -->
+          <div class="col-md-6 p-5 bg-white">
+            <div class="text-center mb-4">
+              <div class="mb-3">
+                <i class="bi bi-person-circle" style="font-size: 3rem; color: #667eea;"></i>
+              </div>
+              <h2 class="fw-bold text-dark mb-2">Chào mừng trở lại!</h2>
+              <p class="text-muted">Đăng nhập để tiếp tục</p>
+            </div>
+
+            <form (ngSubmit)="login()">
+              <div class="mb-4">
+                <label for="email" class="form-label fw-semibold text-dark">
+                  <i class="bi bi-envelope me-2"></i>Email
+                </label>
+                <input
+                  type="text"
+                  class="form-control form-control-lg"
+                  id="email"
+                  placeholder="Nhập email hoặc tên đăng nhập"
+                  [(ngModel)]="email"
+                  name="email"
+                  style="border-radius: 10px; border: 2px solid #e9ecef; padding: 12px 16px;"
+                />
+              </div>
+
+              <div class="mb-4">
+                <label for="password" class="form-label fw-semibold text-dark">
+                  <i class="bi bi-lock me-2"></i>Mật khẩu
+                </label>
+                <input
+                  type="password"
+                  class="form-control form-control-lg"
+                  id="password"
+                  placeholder="Nhập mật khẩu"
+                  [(ngModel)]="password"
+                  name="password"
+                  style="border-radius: 10px; border: 2px solid #e9ecef; padding: 12px 16px;"
+                />
+              </div>
+
+              <div class="d-grid mb-3">
+                <button 
+                  type="submit" 
+                  class="btn btn-lg fw-semibold"
+                  style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                         border: none; border-radius: 10px; color: white; padding: 12px;">
+                  <i class="bi bi-box-arrow-in-right me-2"></i>Đăng nhập
+                </button>
+              </div>
+            </form>
+
+            <div class="mt-3" *ngIf="errorMessage">
+              <div class="alert alert-danger d-flex align-items-center" style="border-radius: 10px;">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                {{ errorMessage }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Side - Register Section -->
+          <div class="col-md-6 d-flex align-items-center justify-content-center text-white p-5"
+               style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <div class="text-center">
+              <div class="mb-4">
+                <i class="bi bi-person-plus-fill" style="font-size: 4rem;"></i>
+              </div>
+              <h2 class="fw-bold mb-3">Tham gia cùng chúng tôi!</h2>
+              <p class="mb-4 opacity-75">
+                Nơi mọi cuộc trò chuyện mở ra một thế giới.
+              </p>
+              <button 
+                class="btn btn-outline-light btn-lg fw-semibold px-4 py-2"
+                (click)="goToRegister()"
+                style="border-radius: 25px; border-width: 2px;">
+                <i class="bi bi-arrow-right-circle me-2"></i>Đăng ký ngay
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="mb-3">
-        <label for="password" class="form-label">Mật khẩu</label>
-        <input
-          type="password"
-          class="form-control"
-          id="password"
-          placeholder="Nhập mật khẩu"
-          [(ngModel)]="password"
-          name="password"
-        />
-      </div>
-      <div class="d-grid">
-        <button type="submit" class="btn btn-primary">Đăng nhập</button>
-      </div>
-    </form>
-    <div class="mt-3 text-center" *ngIf="errorMessage">
-      <p class="text-danger">{{ errorMessage }}</p>
-    </div>
-    </div>
-    <div class="col-md-6">
-        <h2 class="mb-3">Sign up</h2>
-        <p class="mb-4">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-        <button class="btn btn-light text-primary w-100">Register Now!</button>
     </div>
   </div>
 </div>

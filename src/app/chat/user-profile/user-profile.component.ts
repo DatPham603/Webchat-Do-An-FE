@@ -1,8 +1,8 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, EventEmitter, Output } from '@angular/core';
 import { HttpClient, HttpClientModule, HttpHeaders } from '@angular/common/http';
 import { Subject, takeUntil } from 'rxjs';
 import { FormsModule } from '@angular/forms';
-import { NgIf, NgClass } from '@angular/common';
+import { NgIf, NgClass, CommonModule } from '@angular/common';
 import { AvatarService } from '../../service/avatar.service';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { UserDTO } from '../../model/dto.model';
@@ -10,12 +10,14 @@ import { UserDTO } from '../../model/dto.model';
 @Component({
   selector: 'user-infor',
   standalone: true,
-  imports: [FormsModule, HttpClientModule, NgIf, NgClass],
+  imports: [FormsModule, HttpClientModule, NgIf, NgClass,CommonModule  ],
   templateUrl: './user-profile.component.html',
   styleUrls: ['./user-profile.component.scss'],
   providers: [AvatarService], 
 })
 export class UserProfileComponent implements OnInit, OnDestroy {
+  @Output() closeModal = new EventEmitter<void>();
+  
   user: UserDTO = {};
   email: string | null = null;
   userId: string | null = null;
@@ -122,30 +124,35 @@ export class UserProfileComponent implements OnInit, OnDestroy {
     }
   }
 
-  async saveChangesAsync(): Promise<void> {
-    const token = this.getToken();
-    const headers = new HttpHeaders({
-      Authorization: `Bearer ${token}`,
-    });
-    try {
-      const response = await this.http.put<any>(
-        `http://localhost:8989/api/v1/users/update-users-infor/${this.userId}`,
-        this.user, // Truyền this.user làm body của request
-        { headers }  // Truyền headers trong object options
-      )
-        .toPromise();
-      if (response?.data) {
-        this.user = { ...response.data };
-        // this.originalUser = { ...response.data };
-        this.isEditing = false;
-        console.log('Thông tin người dùng đã được cập nhật.');
-      } else {
-        console.error('Lỗi khi cập nhật thông tin người dùng.');
-      }
-    } catch (error) {
-      console.error('Lỗi khi cập nhật thông tin người dùng:', error);
+ async saveChangesAsync(): Promise<void> {
+  const token = this.getToken();
+  const headers = new HttpHeaders({
+    Authorization: `Bearer ${token}`,
+  });
+
+  try {
+    const response = await this.http.put<any>(
+      `http://localhost:8989/api/v1/users/update-users-infor/${this.userId}`,
+      this.user,
+      { headers }
+    ).toPromise();
+
+    if (response?.data) {
+      this.user = { ...response.data };
+      this.isEditing = false;
+      console.log('Thông tin người dùng đã được cập nhật.');
+    } else {
+      console.error('Lỗi khi cập nhật thông tin người dùng.');
     }
+  } catch (error: any) {
+    if (error.error?.message) {
+      alert(`Lỗi: ${error.error.message}`);
+    } else {
+      alert('Có lỗi xảy ra khi cập nhật thông tin người dùng.');
+    }
+    console.error('Lỗi khi cập nhật thông tin người dùng:', error);
   }
+}
 
   cancelEdit(): void {
     this.isEditing = false;
@@ -164,36 +171,6 @@ export class UserProfileComponent implements OnInit, OnDestroy {
   clearAvatarSelection(): void {
     this.selectedAvatar = null;
   }
-
-  // async uploadAvatar(): Promise<void> {
-  //   if (this.selectedAvatar) {
-  //     const formData = new FormData();
-  //     formData.append('avatar', this.selectedAvatar);
-
-  //     const token = this.getToken();
-  //     const headers = new HttpHeaders({
-  //       Authorization: `Bearer ${token}`,
-  //     });
-
-  //     try {
-  //       const response = await this.http
-  //         .post<any>(`http://localhost:8989/api/v1/users/avatar/upload-avatar`, formData, { headers })
-  //         .toPromise();
-  //       if (response?.url) {
-  //         this.user = { ...this.user, avatar: response.avatar }; // Cập nhật avatar
-  //         this.selectedAvatar = null; // Xóa ảnh đã chọn sau khi tải lên
-  //         alert('Avatar uploaded successfully:');
-  //         this.loadAvatarImage(response.url); // Tải lại ảnh mới sau khi upload
-  //       } else {
-  //         console.error('Failed to upload avatar.');
-  //       }
-  //     } catch (error) {
-  //       console.error('Error uploading avatar:', error);
-  //     }
-  //   } else {
-  //     console.warn('No avatar selected.');
-  //   }
-  // }
 
   async uploadAvatar(): Promise<void> {
     if (this.selectedAvatar) {
@@ -253,6 +230,10 @@ export class UserProfileComponent implements OnInit, OnDestroy {
           // Có thể hiển thị ảnh placeholder nếu tải lỗi
         }
       );
+  }
+
+    closeUserProfile(): void {
+    this.closeModal.emit();
   }
 
 

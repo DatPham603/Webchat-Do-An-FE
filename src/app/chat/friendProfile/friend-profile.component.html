@@ -1,61 +1,52 @@
 <div class="container">
-  <div class="card" style="max-width: 600px; margin: 0 auto;">
-    <div class="card-header bg-light d-flex justify-content-between align-items-center">
-      <h5>Thông tin người dùng</h5>
-      <button type="button" class="btn-close" (click)="closeFriendInfo()"></button>
-
+  <div class="card"
+    style="max-width: 600px; margin: 20px auto; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+    <div class="d-flex align-items-center p-3"
+      style="border-radius: 10px; background-color: #f8f9fa; border-bottom: 1px solid #eee;">
+      <div style="width: 90px; height: 90px; border-radius: 50%; overflow: hidden; margin-right: 15px;">
+        <img [src]="avatarUrl || defaultAvatarUrl" alt="Avatar"
+          style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-right: 10px; border: 2px solid #dee2e6; background: rgba(0,0,0,0.5);">
+      </div>
+      <div>
+        <h5 class="mb-0">{{ user?.userName }}</h5>
+        <button *ngIf="!isFriend && currentUserId !== user?.id && !isLoadingFriendshipStatus" type="button"
+          class="btn btn-sm mt-2" [ngClass]="isRequestSent ? 'btn-outline-secondary' : 'btn-primary'"
+          [disabled]="isRequestSent" (click)="addFriend(currentUserId, user?.id)">
+          {{ isRequestSent ? 'Đã gửi' : 'Kết bạn' }}
+        </button>
+      </div>
     </div>
-    <div class="card-body">
-      <div class="row mb-3">
-        <div class="col-md-4 fw-bold">Avatar:</div>
-        <div class="col-md-8">
-          <div class="d-flex align-items-center">
-            <img [src]="avatarUrl || 'https://via.placeholder.com/100'" alt="Avatar"
-              style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-right: 10px;">
+    <div class="card-body p-3">
+      <div class="row">
+        <div class="col-3" style="border-right: 1px solid #ccc;">
+          <h6 class="card-subtitle mb-2 text-muted">Tổng quan</h6>
+        </div>
+        <div class="col-9">
+          <div class="mb-2">
+            <i class="bi bi-envelope-fill me-2"></i> Email: {{ user?.email }}
+          </div>
+          <div class="mb-2">
+            <i class="bi bi-telephone-fill me-2 "></i> Số điện thoại: {{ user?.phoneNumber || 'Chưa có' }}
+          </div>
+          <div class="mb-2">
+            <i class="bi bi-geo-alt-fill me-2 "></i> Địa chỉ: {{ user?.address || 'Chưa có' }}
+          </div>
+          <div class="mb-2">
+            <i class="bi bi-calendar-fill me-2 "></i> Ngày sinh:
+            <ng-container *ngIf="user?.dateOfBirth; else noDateOfBirth">
+              <!-- {{ user.dateOfBirth}} -->
+              <span>{{ user.dateOfBirth | date:'dd/MM/yyyy' }}</span>
+            </ng-container>
+            <ng-template #noDateOfBirth>
+              Chưa có
+            </ng-template>
           </div>
         </div>
       </div>
     </div>
-    <div class="card-body">
-      <div class="row mb-3 align-items-center">
-        <div class="col-md-4 fw-bold">Tên:</div>
-        <div class="col-md-8">
-          {{ user?.userName }}
-        </div>
-      </div>
-
-      <div class="row mb-3 align-items-center">
-        <div class="col-md-4 fw-bold">Email:</div>
-        <div class="col-md-8">
-          {{ user?.email }}
-        </div>
-      </div>
-
-      <div class="row mb-3 align-items-center">
-        <div class="col-md-4 fw-bold">Số điện thoại:</div>
-        <div class="col-md-8">
-          {{ user?.phoneNumber || 'Chưa có' }}
-        </div>
-      </div>
-
-      <div class="row mb-3 align-items-center">
-        <div class="col-md-4 fw-bold">Địa chỉ:</div>
-        <div class="col-md-8">
-          {{ user?.address || 'Chưa có' }}
-        </div>
-      </div>
-
-      <div class="row mb-3 align-items-center">
-        <div class="col-md-4 fw-bold">Ngày sinh:</div>
-        <div class="col-md-8">
-          <ng-container *ngIf="user?.dateOfBirth; else noDateOfBirth">
-            {{ user.dateOfBirth}}
-          </ng-container>
-          <ng-template #noDateOfBirth>
-            Chưa có
-          </ng-template>
-        </div>
-      </div>
+    <div class="card-footer bg-light text-center p-2"
+      style="border-top: 1px solid #eee; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px;">
+      <button type="button" class="btn btn-sm btn-secondary" (click)="closeFriendInfo()">Đóng</button>
     </div>
   </div>
 </div>
