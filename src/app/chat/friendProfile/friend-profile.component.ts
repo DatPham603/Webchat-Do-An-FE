@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, Input, Output, EventEmitter } from '@angu
 import { HttpClient, HttpClientModule, HttpHeaders } from '@angular/common/http';
 import { Subject, takeUntil } from 'rxjs';
 import { FormsModule } from '@angular/forms';
-import { NgIf, NgClass } from '@angular/common';
+import { NgIf, NgClass, CommonModule } from '@angular/common';
 import { AvatarService } from '../../service/avatar.service';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { UserDTO } from '../../model/dto.model';
@@ -11,7 +11,7 @@ import { ActivatedRoute } from '@angular/router';
 @Component({
   selector: 'friend-infor',
   standalone: true,
-  imports: [FormsModule, HttpClientModule, NgIf, NgClass],
+  imports: [FormsModule, HttpClientModule, NgIf, NgClass, CommonModule],
   templateUrl: './friend-profile.component.html',
   styleUrls: ['./friend-profile.component.scss'],
   providers: [AvatarService],
@@ -27,6 +27,7 @@ export class FriendProfileComponent implements OnInit, OnDestroy {
   isFriend: boolean = false;
   currentUserId: string | null = null;
   defaultAvatarUrl: string = 'assets/avatar-default-icon-2048x2048-h6w375ur.png';
+  isRequestSent: boolean = false;
   private readonly destroy$ = new Subject<void>();
 
   constructor(
@@ -172,6 +173,7 @@ export class FriendProfileComponent implements OnInit, OnDestroy {
     try {
       const response = await this.http.post<any>(`http://localhost:8010/api/v1/friends/send-request?userId=${currentUserId}&friendId=${friendId}`, {}, { headers, })
         .toPromise();
+      this.isRequestSent = true;
       alert("Gửi yêu cầu kết bạn thành công !");
     } catch (error: any) { // Type 'error' as 'any' or 'HttpErrorResponse'
       console.error('Lỗi khi gửi yêu cầu kết bạn:', error);

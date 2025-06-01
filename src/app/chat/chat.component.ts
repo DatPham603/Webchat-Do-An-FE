@@ -24,12 +24,13 @@ import { AvatarService } from '../service/avatar.service';
 import { RouterModule } from '@angular/router';
 import { FriendProfileComponent } from './friendProfile/friend-profile.component';
 import { Router } from '@angular/router';
+import { UserProfileComponent } from './user-profile/user-profile.component';
 
 
 @Component({
   selector: 'app-chat',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule, RouterModule, FriendProfileComponent],
+  imports: [CommonModule, FormsModule, HttpClientModule, RouterModule, FriendProfileComponent, UserProfileComponent],
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.scss'],
   providers: [AvatarService],
@@ -88,6 +89,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   isAddMemberModalOpen: boolean = false;
   potentialGroupMembers: any[] = [];
   isFriendInfoModalOpen: boolean = false;
+  isUserProfileModalOpen = false;
   selectedGroupFriendId: string | null = null;
   imageList: any[] = [];
   docList: any[] = [];
@@ -102,6 +104,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   foundUserSearchByName: any[] = [];
   defaultAvatarUrl: string = 'assets/avatar-default-icon-2048x2048-h6w375ur.png';
   friendRequests: any[] = [];
+  acceptedFriendIds: Set<string> = new Set<string>();
   private subscriptions: any[] = [];
   private groupSubscriptions: { [groupId: string]: any[] } = {};
 
@@ -171,6 +174,14 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.openFriendInfoModal(friendId);
   }
 
+   openUserProfileModal(): void {
+    this.isUserProfileModalOpen = true;
+  }
+
+  closeUserProfileModal(): void {
+    this.isUserProfileModalOpen = false;
+  }
+
   async loadFriendRequests(): Promise<void> {
     const url = `http://localhost:8010/api/v1/friends/requests-list/${this.userId}`;
     const token = this.getToken();
@@ -192,7 +203,6 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
   }
 
-
   async acceptFriend(friendId: string): Promise<void> {
   const token = this.getToken();
   const headers = new HttpHeaders({
@@ -205,6 +215,8 @@ export class ChatComponent implements OnInit, OnDestroy {
       {},
       { headers }
     ).toPromise();
+    if(response && friendId){
+    this.acceptedFriendIds.add(friendId);     }
     alert("Chấp nhận lời mời kết bạn thành công !");
   } catch (error: any) {
     console.error('Lỗi khi chấp nhận lời mời kết bạn:', error);
@@ -493,6 +505,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   openCreateGroupModal() {
     this.isCreateGroupModalOpen = true;
+    this.loadFriendsForGroup();
   }
 
   closeCreateGroupModal() {
@@ -503,7 +516,6 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   async createGroup() {
     if (this.newGroupName.trim() && this.userId) {
-      // Đảm bảo có userId
       const token = this.getToken();
       if (!token) {
         console.error('Không tìm thấy token đăng nhập.');
@@ -516,8 +528,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       });
       const body = {
         name: this.newGroupName,
-        ownerId: this.userId, // Gửi userId làm ownerId
-        // memberIds: this.selectedInitialMembers.map(member => member.id)
+        ownerId: this.userId, 
         memberIds: [],
       };
 

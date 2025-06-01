@@ -22,37 +22,42 @@ export class LoginComponent {
   constructor(private http: HttpClient,
              private router: Router) {}
 
-  login() {
-    this.errorMessage = '';
+login() {
+  this.errorMessage = '';
 
-    const loginData = {
-      email: this.email,
-      passWord: this.password,
-    };
+  const loginData = {
+    email: this.email,
+    passWord: this.password,
+  };
 
-    this.http
-      .post<any>('http://localhost:8989/api/v1/users/login', loginData)
-      .subscribe(
-        (response) => {
-          // Đăng nhập thành công
-          if (response.success) {
-            // Lưu trữ token và các thông tin khác (nếu cần)
-            localStorage.setItem('accessToken', response.data.accessToken);
-            localStorage.setItem('refreshToken', response.data.refreshToken);
-            // Điều hướng đến trang chính
-            this.router.navigate(['/chat']); // Thay đổi '/home' thành đường dẫn trang chính của bạn
-          } else {
-            this.errorMessage =
-              'Đăng nhập thất bại. Vui lòng kiểm tra lại email và mật khẩu.';
-          }
-        },
-        (error) => {
-          // Xử lý lỗi API
-          this.errorMessage = 'Lỗi kết nối. Vui lòng thử lại sau.';
-          console.error('Lỗi đăng nhập:', error);
+  this.http
+    .post<any>('http://localhost:8989/api/v1/users/login', loginData)
+    .subscribe(
+      (response) => {
+        if (response.success) {
+          localStorage.setItem('accessToken', response.data.accessToken);
+          localStorage.setItem('refreshToken', response.data.refreshToken);
+          this.router.navigate(['/chat']);
+        } else {
+          this.errorMessage = 'Đăng nhập thất bại. Vui lòng kiểm tra lại email và mật khẩu.';
         }
-      );
-  }
+      },
+      (error) => {
+        console.error('Lỗi đăng nhập:', error);
+
+        // Xử lý các lỗi trả về từ backend
+        if (error.error && typeof error.error === 'string' && error.error.includes('invalid information')) {
+          this.errorMessage = 'Email hoặc mật khẩu không chính xác.';
+        } else if (error.error && error.error.message) {
+          this.errorMessage = error.error.message;
+        } else if (error.status === 0) {
+          this.errorMessage = 'Không thể kết nối đến máy chủ. Vui lòng thử lại sau.';
+        } else {
+          this.errorMessage = 'Đã xảy ra lỗi không xác định. Vui lòng thử lại.';
+        }
+      }
+    );
+}
 
   goToRegister() {
     this.router.navigate(['/register']);

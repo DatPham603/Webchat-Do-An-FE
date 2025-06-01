@@ -6,7 +6,7 @@
       height: 50px;
       border-radius: 50%;
       object-fit: cover;
-    " />
+    " (click)="openUserProfileModal()" />
     </div>
     <div class="flex-grow-1 d-flex justify-content-center">
       <div class="search-container" style="width: 800px; position: relative;">
@@ -63,7 +63,8 @@
               style="position: absolute; left: 60px; top: 15px; width: 230px; border: 1px solid #ccc; z-index: 1000;">
               <ul class="list-unstyled mb-0">
                 <li class="nav-item mb-1">
-                  <a class="nav-link text-dark small d-flex align-items-center" style="cursor: pointer;">
+                  <a class="nav-link text-dark small d-flex align-items-center" style="cursor: pointer;"
+                    (click)="openUserProfileModal()">
                     <i class="bi bi-file-person me-2"></i> Thông tin tài khoản
                   </a>
                 </li>
@@ -140,7 +141,6 @@
       <div class="chats-tabs p-2">
         <div class="btn-group w-100 btn-group-sm" role="group">
           <button type="button" class="btn btn-light active">Chat</button>
-          <button type="button" class="btn btn-light">Call</button>
         </div>
       </div>
       <ul class="chats-list list-unstyled overflow-auto">
@@ -216,7 +216,8 @@
                 class="avatar-sm img-fluid rounded-circle" style="border: none; object-fit: cover;" />
             </div>
           </div>
-          <span class="fw-bold small" *ngIf="selectedFriendId">{{selectedFriend.friendName}}</span>
+          <span class="fw-bold small" (click)="openFriendInfoModal(this.selectedFriendId)" style="cursor: pointer;"
+            *ngIf="selectedFriendId">{{selectedFriend.friendName}}</span>
           <span class="fw-bold small" *ngIf="selectedGroupId">{{selectedGroupName}}</span>
         </div>
         <div class="chat-actions">
@@ -366,12 +367,15 @@
               <input type="file" class="form-control form-control-sm" accept="image/png, image/jpeg, image/gif"
                 (change)="onAvatarSelected($event)" #groupAvatarInputRef />
             </div>
-            <button class="btn btn-sm btn-secondary mt-2" (click)="clearAvatarSelection()">
-              <i class="bi bi-x"></i> Hủy
-            </button>
-            <button *ngIf="groupAvatarFile" class="btn btn-sm btn-primary mt-2" (click)="uploadGroupAvatar()">
-              <i class="bi bi-upload"></i> Tải lên
-            </button>
+            <div class="d-flex gap-2 mt-2">
+              <button *ngIf="groupAvatarFile" class="btn btn-sm btn-primary custom-upload-btn"
+                (click)="uploadGroupAvatar()">
+                <i class="bi bi-upload"></i> Tải lên
+              </button>
+              <button class="btn btn-sm btn-outline-secondary custom-cancel-btn" (click)="clearAvatarSelection()">
+                <i class="bi bi-x"></i> Hủy
+              </button>
+            </div>
           </ng-container>
           <ng-template #viewGroupAvatarUpload>
             <div
@@ -526,7 +530,7 @@
         <h6>Tìm kiếm theo email</h6>
         <div class="input-group mb-2">
           <input type="text" style="width: 0; margin-bottom: 0" class="search-group-user form-control form-control-sm"
-            placeholder="Tìm kiếm người dùng theo email" [(ngModel)]="searchEmail" />
+            placeholder="Tìm kiếm người dùng theo email" [(ngModel)]="searchEmail" (keyup.enter)="findUserByEmail()" />
           <button class="btn btn-outline-secondary btn-sm" type="button" (click)="findUserByEmail()">
             <i class="bi bi-search"></i>
           </button>
@@ -625,6 +629,17 @@
   </div>
 </friend-infor>
 
+<user-infor *ngIf="isUserProfileModalOpen" (closeModal)="closeUserProfileModal()" style="position: fixed; top: 0; 
+            left: 0; 
+            width: 100%; height: 100%; 
+                   background-color:
+                    rgba(0, 0, 0, 0.5);
+                     display: flex; 
+                   justify-content: center; 
+                   align-items: center; z-index: 1000;">
+  <div class="card" style="max-width: 600px; margin: 0 auto;"></div>
+</user-infor>
+
 
 <div *ngIf="showAcceptFriendCancelled" class="modal fade show" tabindex="-1" role="dialog" style="display: block;">
   <div class="modal-dialog modal-dialog-centered" role="document">
@@ -651,11 +666,17 @@
             </div>
             <span>{{ request.senderName }}</span>
           </div>
-          <button type="button" class="btn btn-sm btn-primary" (click)="acceptFriend(request.senderId)">Chấp
-            nhận</button>
+          <button type="button" class="btn btn-sm mt-2"
+            [ngClass]="acceptedFriendIds.has(request.senderId) ? 'btn-outline-secondary' : 'btn-primary'"
+            [disabled]="acceptedFriendIds.has(request.senderId)" (click)="acceptFriend(request.senderId)">
+            {{ acceptedFriendIds.has(request.senderId) ? 'Bạn bè' : 'Chấp nhận' }}
+          </button>
         </div>
-        <div *ngIf="friendRequests.length === 0">
-          Không có lời mời kết bạn nào.
+
+        <div *ngIf="friendRequests.length === 0" class="text-center p-4">
+          <img src="assets/Screenshot 2025-06-01 165228.png" alt="Không có lời mời kết bạn" class="img-fluid mb-3"
+            style="max-width: 300px; border-radius: 8px; " />
+          <h5 class="text-muted">Bạn chưa có lời mời kết bạn nào</h5>
         </div>
       </div>
     </div>
