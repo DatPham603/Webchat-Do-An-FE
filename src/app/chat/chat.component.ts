@@ -127,11 +127,11 @@ export class ChatComponent implements OnInit, OnDestroy {
   constructor(private http: HttpClient,
     private avatarService: AvatarService,
     private sanitizer: DomSanitizer,
-     private router: Router
+    private router: Router
   ) { }
 
   async ngOnInit() {
-    await this.initChat(); 
+    await this.initChat();
     await this.loadFriends();
     await this.loadUserSearch();
     this.fetchUserDataAsync();
@@ -174,7 +174,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.openFriendInfoModal(friendId);
   }
 
-   openUserProfileModal(): void {
+  openUserProfileModal(): void {
     this.isUserProfileModalOpen = true;
   }
 
@@ -188,7 +188,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     const headers = new HttpHeaders({
       Authorization: `Bearer ${token}`,
     });
-      try {
+    try {
       const response = await this.http.get<any>(`http://localhost:8010/api/v1/friends/requests-list/${this.userId}`, {
         headers,
       })
@@ -204,31 +204,32 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   async acceptFriend(friendId: string): Promise<void> {
-  const token = this.getToken();
-  const headers = new HttpHeaders({
-    Authorization: `Bearer ${token}`,
-  });
-  try {
-    console.log(friendId);
-    const response = await this.http.post<any>(
-      `http://localhost:8010/api/v1/friends/accept-request?userId=${this.userId}&friendId=${friendId}`,
-      {},
-      { headers }
-    ).toPromise();
-    if(response && friendId){
-    this.acceptedFriendIds.add(friendId);     }
-    alert("Chấp nhận lời mời kết bạn thành công !");
-  } catch (error: any) {
-    console.error('Lỗi khi chấp nhận lời mời kết bạn:', error);
-    let errorMessage = 'Đã xảy ra lỗi khi chấp nhận lời mời kết bạn.';
-    if (error?.error?.message) {
-      errorMessage = error.error.message;
-    } else if (error.message) {
-      errorMessage = error.message;
+    const token = this.getToken();
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+    });
+    try {
+      console.log(friendId);
+      const response = await this.http.post<any>(
+        `http://localhost:8010/api/v1/friends/accept-request?userId=${this.userId}&friendId=${friendId}`,
+        {},
+        { headers }
+      ).toPromise();
+      if (response && friendId) {
+        this.acceptedFriendIds.add(friendId);
+      }
+      alert("Chấp nhận lời mời kết bạn thành công !");
+    } catch (error: any) {
+      console.error('Lỗi khi chấp nhận lời mời kết bạn:', error);
+      let errorMessage = 'Đã xảy ra lỗi khi chấp nhận lời mời kết bạn.';
+      if (error?.error?.message) {
+        errorMessage = error.error.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      alert(`${errorMessage}`);
     }
-    alert(`${errorMessage}`);
   }
-}
 
 
   async fetchUserDataAsync(): Promise<void> {
@@ -394,10 +395,10 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   async loadGroupAvatarImage(filename: string) {
     try {
-      if(filename){
-              this.groupAvatarUrl = `http://localhost:8990/api/v1/groups/get-group-avatar/${this.getFilenameFromUrl(filename)}`;
+      if (filename) {
+        this.groupAvatarUrl = `http://localhost:8990/api/v1/groups/get-group-avatar/${this.getFilenameFromUrl(filename)}`;
 
-      }else{
+      } else {
         this.groupAvatarUrl = this.defaultAvatarUrl;
       }
     } catch (error) {
@@ -411,7 +412,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       return imageUrl;
     } catch (error) {
       console.error('Lỗi khi tải avatar nhóm:', error);
-      return this.defaultAvatarUrl; 
+      return this.defaultAvatarUrl;
     }
   }
 
@@ -528,7 +529,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       });
       const body = {
         name: this.newGroupName,
-        ownerId: this.userId, 
+        ownerId: this.userId,
         memberIds: [],
       };
 
@@ -956,10 +957,10 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   loadChatList() {
-  if (this.chatList && this.chatList.length > 0) {
-    this.selectChat(this.chatList[0]);
+    if (this.chatList && this.chatList.length > 0) {
+      this.selectChat(this.chatList[0]);
+    }
   }
-}
 
   async loadSelectedFriendAvatar(filename: string) {
     try {
@@ -1047,7 +1048,7 @@ export class ChatComponent implements OnInit, OnDestroy {
                 });
               } else {
                 console.warn('Không nhận được blob dữ liệu avatar:', item.avatar);
-                return { ...item, avatarUrl: this.defaultAvatarUrl};
+                return { ...item, avatarUrl: this.defaultAvatarUrl };
               }
             } catch (error) {
               console.error('Lỗi khi tải avatar:', error);
@@ -1057,10 +1058,10 @@ export class ChatComponent implements OnInit, OnDestroy {
             return { ...item, avatarUrl: await this.loadGroupAvatarImage2(item.avatar) };
           } else {
             console.warn(`Loại chat không xác định (${item.type}) nhưng có avatar:`, item.avatar);
-            return { ...item, avatarUrl:this.defaultAvatarUrl };
+            return { ...item, avatarUrl: this.defaultAvatarUrl };
           }
         } else {
-          return { ...item, avatarUrl: this.defaultAvatarUrl};
+          return { ...item, avatarUrl: this.defaultAvatarUrl };
         }
       }));
       console.log("item day" + response.data + userId)
@@ -1078,7 +1079,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
   }
 
-    filterUsers(): void {
+  filterUsers(): void {
     this.foundUserToAdd = null;
     this.findUserError = '';
     this.foundUsersByNameList = [];
@@ -1137,7 +1138,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   mapUserFriendDTOListToChatListItemList(userFriendDTOList: any): ChatListItem[] {
     return userFriendDTOList.map((dto: any) => this.mapUserToChatListItem(dto));
   }
-  
+
   searchAllUsers(): void {
     this.findUserSearchError = '';
     this.foundUserSearchByName = [];
@@ -1159,7 +1160,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.findUserSearchError = 'Không tìm thấy người dùng.';
     }
   }
-  
+
   getAvatarUrlForChatListItem(filename: string): string {
     return `http://localhost:8989/api/v1/users/avatar/get-avatar/${this.getFilenameFromUrl(filename)}`;
   }
@@ -1387,22 +1388,22 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.showAcceptFriendCancelled = false;
   }
 
-   openFriendRequestModal() {
+  openFriendRequestModal() {
     this.showAcceptFriendCancelled = true;
     this.loadFriendRequests();
   }
 
   toggleSettings() {
-  this.isSettingsOpen = !this.isSettingsOpen;
+    this.isSettingsOpen = !this.isSettingsOpen;
   }
 
   logout() {
     const token = localStorage.getItem('accessToken');
-    const refreshToken = localStorage.getItem('refreshToken'); 
+    const refreshToken = localStorage.getItem('refreshToken');
 
     if (!token || !refreshToken) {
       console.error('Access token or refresh token not found.');
-      this.router.navigate(['/login']); 
+      this.router.navigate(['/login']);
       return;
     }
 
@@ -1415,7 +1416,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 
     this.http.post<any>(
       'http://localhost:8989/api/v1/users/logout-account',
-      {}, 
+      {},
       { headers: headers, params: params }
     ).subscribe({
       next: (response) => {
@@ -1427,7 +1428,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Logout failed', error);
-        this.isSettingsOpen = false; 
+        this.isSettingsOpen = false;
       }
     });
   }
@@ -1498,6 +1499,15 @@ export class ChatComponent implements OnInit, OnDestroy {
         }
       );
 
+      this.stompClient.subscribe(
+        `/user/queue/webrtc/callended`,
+        (message: any) => {
+          const payload = JSON.parse(message.body);
+          console.log('Cuộc gọi đã kết thúc bởi:', payload.callerId);
+          this.handleCallEnded(payload.callerId);
+        }
+      );
+
       console.log('Đã đăng ký các kênh WebSocket.');
 
       socket.onclose = () => {
@@ -1553,6 +1563,16 @@ export class ChatComponent implements OnInit, OnDestroy {
           }
         };
 
+        // THÊM XỬ LÝ KHI CONNECTION ĐÓNG
+        this.peerConnection.onconnectionstatechange = () => {
+          if (this.peerConnection?.connectionState === 'disconnected' ||
+            this.peerConnection?.connectionState === 'failed' ||
+            this.peerConnection?.connectionState === 'closed') {
+            console.log('Peer connection đã đóng');
+            this.stopCall();
+          }
+        };
+
         const offer = await this.peerConnection.createOffer();
         await this.peerConnection.setLocalDescription(offer);
         this.sendOffer(friendId, offer);
@@ -1562,6 +1582,12 @@ export class ChatComponent implements OnInit, OnDestroy {
       }
     }
   }
+
+  handleCallEnded(callerId: string) {
+    console.log(`Cuộc gọi với ${callerId} đã kết thúc`);
+    this.stopCall();
+  }
+
 
   async handleOffer(offer: RTCSessionDescriptionInit, callerId: string) {
     if (!this.isCalling && !this.isIncomingCall) {
@@ -1613,6 +1639,16 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.peerConnection.onicecandidate = async (event) => {
           if (event.candidate) {
             this.sendIceCandidate(this.incomingCallerId!, event.candidate);
+          }
+        };
+
+        // THÊM XỬ LÝ KHI CONNECTION ĐÓNG
+        this.peerConnection.onconnectionstatechange = () => {
+          if (this.peerConnection?.connectionState === 'disconnected' ||
+            this.peerConnection?.connectionState === 'failed' ||
+            this.peerConnection?.connectionState === 'closed') {
+            console.log('Peer connection đã đóng');
+            this.stopCall();
           }
         };
 
@@ -1696,7 +1732,21 @@ export class ChatComponent implements OnInit, OnDestroy {
     );
   }
 
+  sendCallEnded(receiverId: string) {
+    this.stompClient.send(
+      '/app/webrtc.callended',
+      {},
+      JSON.stringify({ receiverId, callerId: this.userId })
+    );
+  }
+
   stopCall() {
+    if (this.callInProgressWith) {
+      this.sendCallEnded(this.callInProgressWith);
+    } else if (this.incomingCallerId) {
+      this.sendCallEnded(this.incomingCallerId);
+    }
+
     if (this.peerConnection) {
       this.peerConnection.close();
       this.peerConnection = null;
